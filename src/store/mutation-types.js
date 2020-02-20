@@ -1,0 +1,3 @@
+export const SET_IMGSTATUS = 'SET_IMGSTATUS'
+
+export const GET_IMGSTATUS = 'GET_IMGSTATUS'

@@ -1,0 +1,23 @@
+@import './progress.scss';
+@import './triangle.scss';
+@import './wave.scss';
+@import './pyramid.scss';
+
+#main {
+  padding: 0 20px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  .design__div--chart {
+    width: 30%;
+    height: 300px;
+    padding: 10px;
+    box-shadow: 0 0 15px -6px #000;
+    flex: 0 0 30%;
+    margin: 10px;
+    text-align: center;
+    img{
+      max-height: 256px;
+    }
+  }
+}
