@@ -22,6 +22,7 @@
     "clean-webpack-plugin": "1.0.1",
     "cross-env": "5.2.0",
     "css-loader": "2.1.0",
+    "csv-loader": "3.0.2",
     "deep-copy": "1.4.2",
     "eslint": "5.12.1",
     "eslint-loader": "2.1.1",
@@ -31,8 +32,8 @@
     "html-loader": "0.5.5",
     "html-webpack-plugin": "3.2.0",
     "mini-css-extract-plugin": "0.5.0",
-    "node-sass": "4.11.0",
     "optimize-css-assets-webpack-plugin": "5.0.1",
+    "papaparse": "5.2.0",
     "postcss-loader": "3.0.0",
     "raw-loader": "1.0.0",
     "sass-loader": "7.1.0",
@@ -52,18 +53,22 @@
   "dependencies": {
     "@johh/three-effectcomposer": "0.0.7",
     "@tweenjs/tween.js": "17.4.0",
-    "axios": "0.18.0",
+    "axios": "0.19.2",
     "babel-polyfill": "6.26.0",
     "d3": "5.9.2",
     "d3-fetch": "1.1.2",
     "es6-promise": "4.2.6",
     "jquery": "3.4.1",
+    "jsnetworkx": "0.3.4",
+    "loadsh": "^0.0.4",
     "lodash": "4.17.15",
+    "node-sass": "4.13.1",
     "three": "0.107.0",
     "three-orbitcontrols": "2.102.2",
     "vue": "2.6.10",
     "vue-router": "3.0.6",
     "vuex": "3.1.0",
-    "webpack-visualizer-plugin": "0.1.11"
+    "webpack-visualizer-plugin": "0.1.11",
+    "xml-loader": "1.2.1"
   }
 }

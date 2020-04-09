@@ -55,7 +55,7 @@ const routes = [
   {
     path: "/sphere",
     name: "sphere",
-    component: resolve => require(["./components/map/sphere.vue"], resolve)
+    component: resolve => require(["./components/charts/tree.vue"], resolve)
   }
 ];
 

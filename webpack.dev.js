@@ -8,7 +8,6 @@ module.exports = merge(common,{
         hot: true,
         host: 'fe-chart.net',
         compress: true,
-        overlay: true,
-        open: true
+        overlay: true
     }
 })
