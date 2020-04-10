@@ -13,9 +13,10 @@ export default {
   data() {
     return {
       csvData: {
-        name: 'root',
+        'Data.process_id': 'root',
         children: []
-      }
+      },
+      width: 940
     }
   },
   mounted() {
@@ -26,16 +27,12 @@ export default {
   },
   methods: {
     processData(data) {
-
       let process_map = {};
-      let nodes = [];
       let root_map = {};
       for (let i = 0; i < data.length; i++) {
         let d = data[i];
         // 拿进程id等关联
         process_map[d[`Data.process_id`]] = d;
-
-        nodes.push(d)
 
         // 找到root
         if (d[`Data.parent_process_id`] === d[`Data.root_process_id`]) {
@@ -51,7 +48,6 @@ export default {
 
           if (!process_map[root_process_id]) {
             process_map[root_process_id] = root;
-            nodes.push(root);
           }
         }
       }
@@ -65,112 +61,74 @@ export default {
         if (!parent.children) parent.children = [];
         parent && parent.children.push(d);
       }
-
-
-      let list = [];
-
-      for (let i = 0; i < data.length; i++) {
-        const d = data[i];
-        const parent = process_map[d["Data.parent_process_id"]];
-        if (!parent) continue;
-        list.push({
-          source: parent['Data.process_id'],
-          target: d['Data.process_id'],
-        });
-      }
-
-      return {
-        nodes: nodes,
-        links: list
-      };
+      Object.keys(process_map).forEach(item => {
+        this.csvData.children.push(process_map[item])
+      })
+      return this.csvData;
     },
     draw(res) {
-      res.length = 500;
+      res.length = 100
       let data = this.processData(res);
-      const links = data.links.map(d => Object.create(d));
-      const nodes = data.nodes.map(d => d);
-      const width = document.documentElement.clientWidth;
-      const height = document.documentElement.clientHeight;
-      const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links).id(d => d['Data.process_id']))
-        .force("charge", d3.forceManyBody().strength(-30))
-        .force("x", d3.forceX())
-        .force("y", d3.forceY())
+
+      const root = this.tree(data);
+
+      let x0 = Infinity;
+      let x1 = -x0;
+      root.each(d => {
+        if (d.x > x1) x1 = d.x;
+        if (d.x < x0) x0 = d.x;
+      });
 
       const svg = d3.select(this.$refs.svg).append('svg')
-        .attr('width', width)
-        .attr('height', height)
-        .attr("viewBox", [-width / 2, -height / 2, width, height]);
+        .attr('width', this.width)
+        .attr('height', x1 - x0 + root.dx * 2)
+      // .attr("viewBox", [0, 0, this.width, x1 - x0 + root.dx * 2]);
 
-      const link = svg.append("g")
-        .selectAll("line")
-        .data(links)
-        .join("line")
-        .attr("stroke-width", 1)
-        .attr('stroke', '#f00')
+      const g = svg.append("g")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
 
-      const node = svg.append("g")
-        .selectAll("circle")
-        .data(nodes)
-        .join("circle")
-        .attr("r", 5)
-        .attr("fill", d3.scaleOrdinal(d3.schemeCategory10))
-        .call(this.simulation(simulation));
+      const link = g.append("g")
+        .attr("fill", "none")
+        .attr("stroke", "#555")
+        .attr("stroke-opacity", 0.4)
+        .attr("stroke-width", 1.5)
+        .selectAll("path")
+        .data(root.links())
+        .join("path")
+        .attr("d", d3.linkHorizontal()
+          .x(d => d.y)
+          .y(d => d.x));
 
-      const text = svg.append('g')
-        .selectAll('text')
-        .data(nodes)
-        .join('text')
-        .attr("fill", d3.scaleOrdinal(d3.schemeCategory10))
+      const node = g.append("g")
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-width", 3)
+        .selectAll("g")
+        .data(root.descendants())
+        .join("g")
+        .attr("transform", d => `translate(${d.y},${d.x})`);
+
+      node.append("circle")
+        .attr("fill", d => d.children ? "#555" : "#999")
+        .attr("r", 2.5);
+
+      node.append("text")
+        .attr("dy", "0.31em")
+        .attr("x", d => d.children ? -6 : 6)
+        .attr("text-anchor", d => d.children ? "end" : "start")
         .text(d => {
-          let str = d['Data.process_name'] ? d['Data.process_name'].split('\n')[0] : ''
+          let str = d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : ''
           return str;
         })
-        .call(this.simulation(simulation));
-
-
-      simulation.on("tick", () => {
-        link
-          .attr("x1", d => d.source.x)
-          .attr("y1", d => d.source.y)
-          .attr("x2", d => d.target.x)
-          .attr("y2", d => d.target.y);
-
-        node
-          .attr("cx", d => d.x)
-          .attr("cy", d => d.y);
-
-        text.attr('x', d => d.x)
-          .attr('y', d => d.y)
-          .attr('transform',`translate(2,-2)`)
-      });
-      // setTimeout(()=>{
-      //   simulation.stop()
-      // },2000);
-
+        .clone(true).lower()
+        .attr("stroke", "white");
     },
-    simulation(simulation) {
-      function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.3).restart();
-        d.fx = d.x;
-        d.fy = d.y;
-      }
-
-      function dragged(d) {
-        d.fx = d3.event.x;
-        d.fy = d3.event.y;
-      }
-
-      function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0);
-        d.fx = null;
-        d.fy = null;
-      }
-
-      return d3.drag()
-        .on("start", dragstarted)
-        .on("drag", dragged)
-        .on("end", dragended);
+    tree(data) {
+      const root = d3.hierarchy(data);
+      root.dx = 10;
+      root.dy = this.width / (root.height + 1);
+      return d3.tree().nodeSize([root.dx, root.dy])(root);
     }
   }
 }
