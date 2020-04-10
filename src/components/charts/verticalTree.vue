@@ -16,7 +16,7 @@ export default {
         'Data.process_id': 'root',
         children: []
       },
-      width: 940
+      width: 1920
     }
   },
   mounted() {
@@ -78,18 +78,15 @@ export default {
         if (d.x > x1) x1 = d.x;
         if (d.x < x0) x0 = d.x;
       });
-      let div = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0)
 
       const svg = d3.select(this.$refs.svg).append('svg')
         .attr('width', this.width)
-        .attr('height', x1 - x0 + root.dx * 2)
+        .attr('height', 1000)
 
       const g = svg.append("g")
         .attr("font-family", "sans-serif")
         .attr("font-size", 10)
-        .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
+        .attr("transform", `translate(${0},${30})`);
 
       const link = g.append("g")
         .attr("fill", "none")
@@ -99,9 +96,10 @@ export default {
         .selectAll("path")
         .data(root.links())
         .join("path")
-        .attr("d", d3.linkHorizontal()
-          .x(d => d.y)
-          .y(d => d.x));
+        .attr("d", d3
+          .linkVertical()
+          .source((d) => [d.source.x, d.source.y + 12])
+          .target((d) => [d.target.x, d.target.y - 12]));
 
       const node = g.append("g")
         .attr("stroke-linejoin", "round")
@@ -109,43 +107,33 @@ export default {
         .selectAll("g")
         .data(root.descendants())
         .join("g")
-        .attr("transform", d => `translate(${d.y},${d.x})`);
+        .attr(
+          "transform",
+          (d) => `translate(${Math.round(d.x)},${Math.round(d.y)})`
+        );
 
       node.append("circle")
         .attr("fill", d => d.children ? "#555" : "#999")
-        .attr("r", 5)
-        .on("mouseover", function (d) {
-          div.transition()
-            .duration(200)
-            .style("opacity", 0.9);
-          let str = ``;
-          Object.keys(d.data).forEach(item => {
-            if(item !== 'children')str += `${item}:${d.data[item]}<br/>`
-          })
-          div.html(str)
-            .style("left", (d3.event.pageX) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
-        })
-        .on("mouseout", function (d) {
-          div.transition()
-            .duration(500)
-            .style("opacity", 0);
-        });
+        .attr("r", 2.5);
 
       node.append("text")
         .attr("dy", "0.31em")
         .attr("x", d => d.children ? -6 : 6)
         .attr("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
+        .text(d => {
+          let str = d.data['Data.process_id'] ? d.data['Data.process_id'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : ''
+          return str
+        })
         .clone(true).lower()
         .attr("stroke", "white");
     },
     tree(data) {
-      const root = d3.hierarchy(data);
-      root.dx = 10;
-      root.dy = this.width / (root.height + 1);
-      return d3.tree().nodeSize([root.dx, root.dy])(root);
+      return d3
+        .tree()
+        .size([this.width - 20 * 2, 800 - 20 * 2])
+        .separation(() => 1)(d3.hierarchy(data))
     }
   }
 }
 </script>
+
