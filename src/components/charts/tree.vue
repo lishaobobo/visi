@@ -85,23 +85,21 @@ export default {
       };
     },
     draw(res) {
-      res.length = 1000;
+      res.length = 500;
       let data = this.processData(res);
       const links = data.links.map(d => Object.create(d));
-      const nodes = data.nodes.map(d => Object.create(d));
-      const width = 1920;
-      const height = 1000;
+      const nodes = data.nodes.map(d => d);
+      const width = document.documentElement.clientWidth;
+      const height = document.documentElement.clientHeight;
       const simulation = d3.forceSimulation(nodes)
-        // .alpha(0.01)
-        .force("link", d3.forceLink(links).id(d => d['Data.process_id']).distance(0).strength(1))
-        .force("charge", d3.forceManyBody().strength(-5))
-        .force('collision', d3.forceCollide(12).strength(1).iterations(100))
-        // .force("link", d3.forceLink(links).id(d => d['Data.process_id']).distance(10))
-        // .force("charge", d3.forceManyBody().strength(-4)) // 节点间的斥力,-值为相互排斥,+值为相互吸引
+        .force("link", d3.forceLink(links).id(d => d['Data.process_id']))
+        .force("charge", d3.forceManyBody().strength(-30))
         .force("x", d3.forceX())
         .force("y", d3.forceY())
 
       const svg = d3.select(this.$refs.svg).append('svg')
+        .attr('width', width)
+        .attr('height', height)
         .attr("viewBox", [-width / 2, -height / 2, width, height]);
 
       const link = svg.append("g")
@@ -119,8 +117,17 @@ export default {
         .attr("fill", d3.scaleOrdinal(d3.schemeCategory10))
         .call(this.simulation(simulation));
 
-      node.append("title")
-        .text(d => d.id);
+      const text = svg.append('g')
+        .selectAll('text')
+        .data(nodes)
+        .join('text')
+        .attr("fill", d3.scaleOrdinal(d3.schemeCategory10))
+        .text(d => {
+          let str = d['Data.process_name'] ? d['Data.process_name'].split('\n')[0] : ''
+          return str;
+        })
+        .call(this.simulation(simulation));
+
 
       simulation.on("tick", () => {
         link
@@ -132,6 +139,10 @@ export default {
         node
           .attr("cx", d => d.x)
           .attr("cy", d => d.y);
+
+        text.attr('x', d => d.x)
+          .attr('y', d => d.y)
+          .attr('transform',`translate(2,-2)`)
       });
       // setTimeout(()=>{
       //   simulation.stop()
