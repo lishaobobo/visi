@@ -16,38 +16,49 @@ export default {
         'Data.process_id': 'root',
         children: []
       },
-      width: 940
+      width: 0,
+      tooltip: null,
+      x0: Infinity,
+      x1: -Infinity,
+      root: {}
     }
   },
   mounted() {
     d3.csv('/assets/csv/all.csv').then((res) => {
       delete res.columns;
-      this.draw(_.uniqBy(res, 'Data.process_id'));
+      // 去重之后处理
+      let data = this.processData(_.uniqBy(res, 'Data.process_id'));
+      this.root = this.tree(data);
+      this.draw(this.root)
     })
   },
   methods: {
     processData(data) {
+      data.length = data.length > 30 ? 30 : data.length
+      let root = {
+        'Data.process_id': 'root',
+        children: []
+      }
       let process_map = {};
       let root_map = {};
       for (let i = 0; i < data.length; i++) {
         let d = data[i];
         // 拿进程id等关联
         process_map[d[`Data.process_id`]] = d;
-
         // 找到root
         if (d[`Data.parent_process_id`] === d[`Data.root_process_id`]) {
           let root_process_id = d[`Data.root_process_id`];
-          let root = {
+          let _root = {
             "Data.process_id": root_process_id,
             "Data.process_name": d["Data.root_process_name"],
             "Data.process_path": d["Data.root_process_path"],
           };
           if (!root_map[root_process_id]) {
-            root_map[root_process_id] = root;
+            root_map[root_process_id] = _root;
           }
 
           if (!process_map[root_process_id]) {
-            process_map[root_process_id] = root;
+            process_map[root_process_id] = _root;
           }
         }
       }
@@ -55,96 +66,159 @@ export default {
       for (let i = 0; i < data.length; i++) {
         const d = data[i];
         const parent = process_map[d["Data.parent_process_id"]];
-        if (!parent) {
-          continue
-        };
+        if (!parent) continue;
         if (!parent.children) parent.children = [];
         parent && parent.children.push(d);
       }
       Object.keys(process_map).forEach(item => {
-        this.csvData.children.push(process_map[item])
+        root.children.push(process_map[item])
       })
-      return this.csvData;
+      return root;
     },
-    draw(res) {
-      res.length = 100
-      let data = this.processData(res);
-
-      const root = this.tree(data);
-
-      let x0 = Infinity;
-      let x1 = -x0;
-      root.each(d => {
-        if (d.x > x1) x1 = d.x;
-        if (d.x < x0) x0 = d.x;
+    draw(source) {
+      this.root.each(d => {
+        if (d.x > this.x1) this.x1 = d.x;
+        if (d.x < this.x0) this.x0 = d.x;
       });
-      let div = d3.select("body").append("div")
-        .attr("class", "tooltip")
-        .style("opacity", 0)
+      this.addToolTip()
+      const svg = this.addSvg()
+      this.renderNode(svg)
+      this.renderLink(svg)
+    },
+    renderText(svg, nodes) {
+      svg.selectAll('.text')
+        .data(nodes)
+        .enter()
+        .append('text')
+        .attr('class', 'text')
+        .attr("dy", "0.31em")
+        .attr("x", d => d.children ? -6 : 6)
+        .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
+        .clone(true)
+        .lower()
+        .attr("stroke", "white");
+    },
+    renderNode(svg) {
+      const nodes = this.root.descendants();
+      this.node = svg.selectAll('.node')
+        .data(nodes)
+        .enter()
+        .append('circle')
+        .attr('fill', d => d.children ? "#555" : "#999")
+        .attr('r', 5)
+        .attr('class', 'node')
+        .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
+        .on('click', d => this.eventClick(d))
+        .on("mouseover", d => this.eventMouseOver(d))
+        .on("mouseout", d => this.eventMouseOut(d));
 
-      const svg = d3.select(this.$refs.svg).append('svg')
-        .attr('width', this.width)
-        .attr('height', x1 - x0 + root.dx * 2)
+      this.node.transition()
+        .duration(500)
+        .attr("transform", d => {
+          return `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`
+        })
+        .on('end', d => this.renderText(svg, nodes))
 
-      const g = svg.append("g")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .attr("transform", `translate(${root.dy / 3},${root.dx - x0})`);
-
-      const link = g.append("g")
+      this.node
+        .exit()
+        .remove();
+    },
+    renderLink(svg) {
+      const links = this.root.links();
+      const link = svg.selectAll('.link')
+        .data(links)
+        .enter()
+        .append('path')
         .attr("fill", "none")
         .attr("stroke", "#555")
         .attr("stroke-opacity", 0.4)
         .attr("stroke-width", 1.5)
-        .selectAll("path")
-        .data(root.links())
-        .join("path")
+        .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
+        .attr("d", d3.linkHorizontal()
+          .x(0)
+          .y(0))
+
+      link.transition()
+        .duration(500)
         .attr("d", d3.linkHorizontal()
           .x(d => d.y)
           .y(d => d.x));
-
-      const node = g.append("g")
-        .attr("stroke-linejoin", "round")
-        .attr("stroke-width", 3)
-        .selectAll("g")
-        .data(root.descendants())
-        .join("g")
-        .attr("transform", d => `translate(${d.y},${d.x})`);
-
-      node.append("circle")
-        .attr("fill", d => d.children ? "#555" : "#999")
-        .attr("r", 5)
-        .on("mouseover", function (d) {
-          div.transition()
-            .duration(200)
-            .style("opacity", 0.9);
-          let str = ``;
-          Object.keys(d.data).forEach(item => {
-            if(item !== 'children')str += `${item}:${d.data[item]}<br/>`
-          })
-          div.html(str)
-            .style("left", (d3.event.pageX) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
-        })
-        .on("mouseout", function (d) {
-          div.transition()
-            .duration(500)
-            .style("opacity", 0);
-        });
-
-      node.append("text")
-        .attr("dy", "0.31em")
-        .attr("x", d => d.children ? -6 : 6)
-        .attr("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
-        .clone(true).lower()
-        .attr("stroke", "white");
+    },
+    addToolTip() {
+      d3.select('.tooltip').remove()
+      if (!this.tooltip) {
+        this.tooltip = d3.select("body").append("div")
+          .attr("class", "tooltip")
+          .style("opacity", 0)
+      }
+    },
+    addSvg() {
+      const svg = d3.select(this.$refs.svg).append('svg')
+        .attr('width', document.documentElement.clientWidth)
+        .attr('height', document.documentElement.clientHeight)
+        .attr('viewBox', `0,0,${1920},${document.documentElement.clientHeight + 100}`)
+      return svg
     },
     tree(data) {
+      if (!data) throw new Error('data is not defined');
       const root = d3.hierarchy(data);
-      root.dx = 10;
-      root.dy = this.width / (root.height + 1);
-      return d3.tree().nodeSize([root.dx, root.dy])(root);
+      root.dx = document.documentElement.clientHeight / root.children.length;
+      root.dy = 1920 / (root.height + 1);
+      return d3.tree()
+        .nodeSize([root.dx, root.dy])(root);
+    },
+    eventMouseOver(d) {
+      this.tooltip.transition()
+        .duration(200)
+        .style("opacity", 0.9);
+      let str = ``;
+      Object.keys(d.data).forEach(item => {
+        if (item !== 'children') str += `${item}:${d.data[item]}<br/>`
+      })
+      this.tooltip.html(str)
+        .style("left", (d3.event.pageX + 10) + "px")
+        .style("top", (d3.event.pageY + 5) + "px");
+    },
+    eventMouseOut(d) {
+      this.tooltip.transition()
+        .duration(500)
+        .style("opacity", 0)
+        .style("left", 0)
+        .style("top", 0);
+    },
+    autoBox() {
+      let { left, right, top, bottom } = {
+        left: 40,
+        right: 40,
+        top: 40,
+        bottom: 40
+      }
+      const { x, y, width, height } = this.getBBox();
+      console.log(this.getBBox())
+      return `${0},${50},${1920},${document.documentElement.clientHeight - 100}`;
+    },
+    eventClick(d) {
+      if (d.children) {
+        d._children = d.children;
+        d.children = null;
+      } else {
+        d.children = d._children;
+        d._children = null;
+      }
+      // this.root.each(item=>{
+      //   if(d.data['Data.process_id'] == item.data['Data.process_id']){
+      //     console.log(item)
+      //   }
+      // })
+      // debugger
+      this.draw(d)
+    },
+    exitNode(source) {
+      console.log(this.node.exit())
+      this.node.exit().transition()
+        .remove();
     }
   }
 }
