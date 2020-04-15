@@ -102,28 +102,35 @@ export default {
     },
     renderNode(svg) {
       const nodes = this.root.descendants();
+
       this.node = svg.selectAll('.node')
         .data(nodes)
-        .enter()
-        .append('circle')
-        .attr('fill', d => d.children ? "#555" : "#999")
-        .attr('r', 5)
-        .attr('class', 'node')
-        .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
+        .join(
+          enter => enter
+            .append('circle')
+            .attr('fill', d => d.children ? "#555" : "#999")
+            .attr('r', 5)
+            .attr('class', 'node')
+            .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
+            .call(enter => enter
+              .transition()
+              .duration(500)
+              .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
+              .on('end', d => this.renderText(svg, nodes))),
+          exit => exit.call(exit => {
+            debugger
+          })
+        )
         .on('click', d => this.eventClick(d))
         .on("mouseover", d => this.eventMouseOver(d))
         .on("mouseout", d => this.eventMouseOut(d));
-
-      this.node.transition()
-        .duration(500)
-        .attr("transform", d => {
-          return `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`
-        })
-        .on('end', d => this.renderText(svg, nodes))
-
-      this.node
-        .exit()
-        .remove();
+      console.log(this.node.exit())
+      // this.node.transition()
+      //   .duration(500)
+      //   .attr("transform", d => {
+      //     return `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`
+      //   })
+      //   .on('end', d => this.renderText(svg, nodes))
     },
     renderLink(svg) {
       const links = this.root.links();
@@ -212,7 +219,6 @@ export default {
       //     console.log(item)
       //   }
       // })
-      // debugger
       this.draw(d)
     },
     exitNode(source) {
