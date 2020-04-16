@@ -1,5 +1,7 @@
 <template>
-  <div ref="svg" class="tree"></div>
+  <div ref="svg" class="tree">
+    <!-- <p @click="reset" style="font-size:40px;text-align: center">点击重置</p> -->
+  </div>
 </template>
 <script>
 import * as d3 from "d3";
@@ -33,6 +35,9 @@ export default {
     })
   },
   methods: {
+    reset() {
+      this.g.attr('transform', '')
+    },
     processData(data) {
       data.length = data.length > 30 ? 30 : data.length
       let root = {
@@ -81,12 +86,13 @@ export default {
         if (d.x < this.x0) this.x0 = d.x;
       });
       this.addToolTip()
-      const svg = this.addSvg()
-      this.renderNode(svg)
-      this.renderLink(svg)
+      this.addSvg()
+      this.renderNode(source)
+      this.renderLink()
+      // this.exitNode(this.root)
     },
-    renderText(svg, nodes) {
-      svg.selectAll('.text')
+    renderText(nodes) {
+      this.g.selectAll('.text')
         .data(nodes)
         .enter()
         .append('text')
@@ -100,44 +106,46 @@ export default {
         .lower()
         .attr("stroke", "white");
     },
-    renderNode(svg) {
+    renderNode(source) {
+      let _me = this;
       const nodes = this.root.descendants();
+      const node = this.svg.selectAll(".node")
+        .data(nodes, (d, i) => d.id || (d.id = ++i));
 
-      this.node = svg.selectAll('.node')
-        .data(nodes)
-        .join(
-          enter => enter
-            .append('circle')
-            .attr('fill', d => d.children ? "#555" : "#999")
-            .attr('r', 5)
-            .attr('class', 'node')
-            .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
-            .call(enter => enter
-              .transition()
-              .duration(500)
-              .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
-              .on('end', d => this.renderText(svg, nodes))),
-          exit => exit.call(exit => {
-            debugger
-          })
-        )
-        .on('click', d => this.eventClick(d))
+      const nodesDOM = node
+        .enter().append("circle")
+        .attr("fill", d => d.children ? "#555" : "#999")
+        .attr("r", 5)
+        .attr("class", "node")
+        .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
+        .on("click", function (d, i) {
+          let string = d3.select(this).attr("transform");
+          let translate = string.substring(string.indexOf("(") + 1, string.indexOf(")")).split(",");
+          return _me.eventClick(d, translate);
+        })
         .on("mouseover", d => this.eventMouseOver(d))
         .on("mouseout", d => this.eventMouseOut(d));
-      console.log(this.node.exit())
-      // this.node.transition()
-      //   .duration(500)
-      //   .attr("transform", d => {
-      //     return `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`
-      //   })
-      //   .on('end', d => this.renderText(svg, nodes))
+      nodesDOM.transition()
+        .duration(500)
+        .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
+        .on("end", d => {
+          return this.renderText(nodes)
+        })
+      node.exit()
+        .transition()
+        .duration(500)
+        .attr("transform", `translate(${source.tx},${source.ty})`)
+        .remove();
+
     },
-    renderLink(svg) {
+    renderLink() {
       const links = this.root.links();
-      const link = svg.selectAll('.link')
-        .data(links)
-        .enter()
-        .append('path')
+      const link = this.svg.selectAll("path.link")
+        .data(links, d => d.target.id);
+
+      const linkDOM = link.enter()
+        .append("path")
+        .attr("class", "link")
         .attr("fill", "none")
         .attr("stroke", "#555")
         .attr("stroke-opacity", 0.4)
@@ -145,13 +153,19 @@ export default {
         .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
         .attr("d", d3.linkHorizontal()
           .x(0)
-          .y(0))
-
-      link.transition()
+          .y(0));
+      linkDOM.order();
+      linkDOM.transition()
         .duration(500)
         .attr("d", d3.linkHorizontal()
           .x(d => d.y)
           .y(d => d.x));
+
+      link.exit().transition().duration(500)
+        .attr("d", d3.linkHorizontal()
+          .x(d => d.parent.y)
+          .y(d => d.parent.x))
+        .remove();
     },
     addToolTip() {
       d3.select('.tooltip').remove()
@@ -162,11 +176,21 @@ export default {
       }
     },
     addSvg() {
-      const svg = d3.select(this.$refs.svg).append('svg')
+      if (this.svg) return
+      this.svg = d3.select(this.$refs.svg).append('svg')
         .attr('width', document.documentElement.clientWidth)
         .attr('height', document.documentElement.clientHeight)
         .attr('viewBox', `0,0,${1920},${document.documentElement.clientHeight + 100}`)
-      return svg
+      this.g = this.svg.append('g')
+        .attr('class', 'container')
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+      // .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
+      // this.svg.call(d3.zoom().scaleExtent([1, 8]).on("zoom", function () {
+      //   let transform = d3.event.transform;
+      //   d3.select('.container')
+      //     .attr("transform", transform)
+      // }))
     },
     tree(data) {
       if (!data) throw new Error('data is not defined');
@@ -203,10 +227,11 @@ export default {
         bottom: 40
       }
       const { x, y, width, height } = this.getBBox();
-      console.log(this.getBBox())
       return `${0},${50},${1920},${document.documentElement.clientHeight - 100}`;
     },
-    eventClick(d) {
+    eventClick(d, point) {
+      d.tx = point[0];
+      d.ty = point[1];
       if (d.children) {
         d._children = d.children;
         d.children = null;
@@ -214,17 +239,11 @@ export default {
         d.children = d._children;
         d._children = null;
       }
-      // this.root.each(item=>{
-      //   if(d.data['Data.process_id'] == item.data['Data.process_id']){
-      //     console.log(item)
-      //   }
-      // })
       this.draw(d)
     },
     exitNode(source) {
-      console.log(this.node.exit())
-      this.node.exit().transition()
-        .remove();
+      this.node.exit().transition().duration(500).attr('transform', `translate(${source.dx},${source.dy})`).remove();
+      this.link.exit().transition().duration(500).attr('transform', `translate(${source.dx},${source.dy})`).remove();
     }
   }
 }
