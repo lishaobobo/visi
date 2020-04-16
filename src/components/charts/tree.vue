@@ -1,6 +1,6 @@
 <template>
   <div ref="svg" class="tree">
-    <!-- <p @click="reset" style="font-size:40px;text-align: center">点击重置</p> -->
+    <p @click="reset" style="font-size:40px;text-align: center">点击重置</p>
   </div>
 </template>
 <script>
@@ -109,7 +109,7 @@ export default {
     renderNode(source) {
       let _me = this;
       const nodes = this.root.descendants();
-      const node = this.svg.selectAll(".node")
+      const node = this.g.selectAll(".node")
         .data(nodes, (d, i) => d.id || (d.id = ++i));
 
       const nodesDOM = node
@@ -136,11 +136,10 @@ export default {
         .duration(500)
         .attr("transform", `translate(${source.tx},${source.ty})`)
         .remove();
-
     },
     renderLink() {
       const links = this.root.links();
-      const link = this.svg.selectAll("path.link")
+      const link = this.g.selectAll("path.link")
         .data(links, d => d.target.id);
 
       const linkDOM = link.enter()
@@ -186,11 +185,11 @@ export default {
         .attr("font-family", "sans-serif")
         .attr("font-size", 10)
       // .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
-      // this.svg.call(d3.zoom().scaleExtent([1, 8]).on("zoom", function () {
-      //   let transform = d3.event.transform;
-      //   d3.select('.container')
-      //     .attr("transform", transform)
-      // }))
+      this.svg.call(d3.zoom().scaleExtent([1, 8]).on("zoom", () => {
+        this.transform = d3.event.transform;
+        d3.select('.container')
+          .attr("transform", this.transform)
+      }))
     },
     tree(data) {
       if (!data) throw new Error('data is not defined');
