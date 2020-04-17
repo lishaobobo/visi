@@ -88,22 +88,7 @@ export default {
       this.addToolTip()
       this.addSvg()
       this.renderNode(source)
-      this.renderLink()
-    },
-    renderText(nodes) {
-      this.g.selectAll('.text')
-        .data(nodes)
-        .enter()
-        .append('text')
-        .attr('class', 'text')
-        .attr("dy", "0.31em")
-        .attr("x", d => d.children ? -6 : 6)
-        .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
-        .attr("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
-        .clone(true)
-        .lower()
-        .attr("stroke", "white");
+      this.renderLink(source)
     },
     renderNode(source) {
       let _me = this;
@@ -112,9 +97,10 @@ export default {
         .data(nodes, (d, i) => d.id || (d.id = ++i));
 
       const nodesDOM = node
-        .enter().append("circle")
-        .attr("fill", d => d.children ? "#555" : "#999")
-        .attr("r", 5)
+        .enter()
+        .append('g')
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-width", 3)
         .attr("class", "node")
         .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
         .on("click", function (d, i) {
@@ -122,24 +108,37 @@ export default {
           let translate = string.substring(string.indexOf("(") + 1, string.indexOf(")")).split(",");
           return _me.eventClick(d, translate);
         })
+
+      nodesDOM.append("circle")
+        .attr("fill", d => d.children ? "#555" : "#999")
+        .attr("r", 10)
         .on("mouseover", d => this.eventMouseOver(d))
-        .on("mouseout", d => this.eventMouseOut(d));
+        .on("mouseout", d => this.eventMouseOut(d))
       nodesDOM.transition()
         .duration(500)
         .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
-        .on("end", d => {
-          return this.renderText(nodes)
-        })
+      nodesDOM.append("text")
+        .attr("dy", "0.31em")
+        .attr("x", d => d.children ? -6 : 6)
+        .attr("text-anchor", d => d.children ? "end" : "start")
+        .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
+        .clone(true)
+        .lower()
+        .attr("stroke", "white");
+
       node.exit()
         .transition()
         .duration(500)
         .attr("transform", `translate(${source.tx},${source.ty})`)
         .remove();
     },
-    renderLink() {
+    renderLink(source) {
+      console.log(source)
       const links = this.root.links();
       const link = this.g.selectAll("path.link")
         .data(links, d => d.target.id);
+
+      const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x)
 
       const linkDOM = link.enter()
         .append("path")
@@ -148,22 +147,25 @@ export default {
         .attr("stroke", "#555")
         .attr("stroke-opacity", 0.4)
         .attr("stroke-width", 1.5)
-        .attr('stroke-dasharray', 5)
+        // .attr('stroke-dasharray', d => d.target.children ? 0 : 5)
         .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
         .attr("d", d3.linkHorizontal()
           .x(0)
           .y(0));
-      linkDOM.order();
+
       linkDOM.transition()
         .duration(500)
         .attr("d", d3.linkHorizontal()
           .x(d => d.y)
           .y(d => d.x));
 
-      link.exit().transition().duration(500)
-        .attr("d", d3.linkHorizontal()
-          .x(d => d.parent.y)
-          .y(d => d.parent.x))
+      link.exit()
+        .transition()
+        .duration(500)
+        .attr("d", d => {
+          const o = { x: source.x, y: source.y };
+          return diagonal({ source: o, target: o });
+        })
         .remove();
     },
     addToolTip() {
@@ -179,11 +181,11 @@ export default {
       this.svg = d3.select(this.$refs.svg).append('svg')
         .attr('width', document.documentElement.clientWidth)
         .attr('height', document.documentElement.clientHeight)
-        .attr('viewBox', `0,0,${1920},${document.documentElement.clientHeight + 100}`)
+        .attr('viewBox', `0,0,${document.documentElement.clientWidth},${document.documentElement.clientHeight + 200}`)
       this.g = this.svg.append('g')
         .attr('class', 'container')
         .attr("font-family", "sans-serif")
-        .attr("font-size", 10);
+        .attr("font-size", 16);
       this.zoom = d3.zoom().on("zoom", this.zoomed)
       this.svg.call(this.zoom);
     },
@@ -194,7 +196,7 @@ export default {
       if (!data) throw new Error('data is not defined');
       const root = d3.hierarchy(data);
       root.dx = document.documentElement.clientHeight / root.children.length;
-      root.dy = 1920 / (root.height + 1);
+      root.dy = document.documentElement.clientWidth / (root.height + 1);
       return d3.tree()
         .nodeSize([root.dx, root.dy])(root);
     },
