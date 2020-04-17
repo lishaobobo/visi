@@ -1,6 +1,6 @@
 <template>
   <div ref="svg" class="tree">
-    <p @click="reset" style="font-size:40px;text-align: center">点击重置</p>
+    <p @click="resetZoom" style="font-size:40px;text-align: center">点击重置</p>
   </div>
 </template>
 <script>
@@ -35,8 +35,8 @@ export default {
     })
   },
   methods: {
-    reset() {
-      this.g.attr('transform', '')
+    resetZoom() {
+      this.svg.transition().duration(500).call(this.zoom.transform, d3.zoomIdentity)
     },
     processData(data) {
       data.length = data.length > 30 ? 30 : data.length
@@ -89,7 +89,6 @@ export default {
       this.addSvg()
       this.renderNode(source)
       this.renderLink()
-      // this.exitNode(this.root)
     },
     renderText(nodes) {
       this.g.selectAll('.text')
@@ -149,6 +148,7 @@ export default {
         .attr("stroke", "#555")
         .attr("stroke-opacity", 0.4)
         .attr("stroke-width", 1.5)
+        .attr('stroke-dasharray', 5)
         .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
         .attr("d", d3.linkHorizontal()
           .x(0)
@@ -183,13 +183,12 @@ export default {
       this.g = this.svg.append('g')
         .attr('class', 'container')
         .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-      // .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`)
-      this.svg.call(d3.zoom().scaleExtent([1, 8]).on("zoom", () => {
-        this.transform = d3.event.transform;
-        d3.select('.container')
-          .attr("transform", this.transform)
-      }))
+        .attr("font-size", 10);
+      this.zoom = d3.zoom().on("zoom", this.zoomed)
+      this.svg.call(this.zoom);
+    },
+    zoomed() {
+      this.g.attr("transform", d3.event.transform)
     },
     tree(data) {
       if (!data) throw new Error('data is not defined');
@@ -239,10 +238,6 @@ export default {
         d._children = null;
       }
       this.draw(d)
-    },
-    exitNode(source) {
-      this.node.exit().transition().duration(500).attr('transform', `translate(${source.dx},${source.dy})`).remove();
-      this.link.exit().transition().duration(500).attr('transform', `translate(${source.dx},${source.dy})`).remove();
     }
   }
 }
