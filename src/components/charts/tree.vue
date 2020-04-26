@@ -36,7 +36,7 @@ export default {
   },
   methods: {
     resetZoom() {
-      this.svg.transition().duration(500).call(this.zoom.transform, d3.zoomIdentity)
+      // this.svg.transition().duration(500).call(this.zoom.transform, d3.zoomIdentity)
     },
     processData(data) {
       data.length = data.length > 30 ? 30 : data.length
@@ -117,15 +117,20 @@ export default {
       nodesDOM.transition()
         .duration(500)
         .attr("transform", d => `translate(${d.y + this.root.dy / 3},${d.x + this.root.dx - this.x0})`)
-      nodesDOM.append("text")
-        .attr("dy", "0.31em")
-        .attr("x", d => d.children ? -6 : 6)
-        .attr("text-anchor", d => d.children ? "end" : "start")
-        .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
-        .clone(true)
-        .lower()
-        .attr("stroke", "white");
+        .on('end', d => {
+          addText(nodesDOM)
+        })
 
+      function addText(nodesDom) {
+        nodesDOM.append("text")
+          .attr("dy", "0.31em")
+          .attr("x", d => d.children ? -6 : 6)
+          .attr("text-anchor", d => d.children ? "end" : "start")
+          .text(d => d.data['Data.process_name'] ? d.data['Data.process_name'].split('\n')[0] : d.data['Data.process_id'] === 'root' ? 'root' : '')
+          .clone(true)
+          .lower()
+          .attr("stroke", "white");
+      }
       node.exit()
         .transition()
         .duration(500)
@@ -133,7 +138,6 @@ export default {
         .remove();
     },
     renderLink(source) {
-      console.log(source)
       const links = this.root.links();
       const link = this.g.selectAll("path.link")
         .data(links, d => d.target.id);
@@ -187,10 +191,29 @@ export default {
         .attr("font-family", "sans-serif")
         .attr("font-size", 16);
       this.zoom = d3.zoom().on("zoom", this.zoomed)
-      this.svg.call(this.zoom);
+      this.timer = null;
+      this.svg.call(this.zoom)
+      // this.svg.call(() => {
+      //   console.log(123)
+      //   if (this.timer) clearTimeout(this.timer)
+      //   this.timer = setTimeout(() => {
+      //     // console.log(123)
+      //     return this.zoom
+      //   }, 500)
+      // });
+    },
+    flag() {
+      if (this.timer) clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        return this.zoom()
+      })
     },
     zoomed() {
-      this.g.attr("transform", d3.event.transform)
+      if (this.timer) clearTimeout(this.timer);
+      let { transform } = d3.event;
+      this.timer = setTimeout(() => {
+        this.g.attr("transform", transform)
+      }, 300)
     },
     tree(data) {
       if (!data) throw new Error('data is not defined');

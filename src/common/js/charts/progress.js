@@ -10,22 +10,61 @@ function getSplitInfo(total, index) {
   return {
     angle,
     x: Math.sin((angle * Math.PI) / 180),
-    y: Math.cos((angle * Math.PI) / 180)
+    y: Math.cos((angle * Math.PI) / 180),
   };
 }
 
-function titleFormat(value) {
+function textFormat(value) {
   return (value * 100).toFixed(2) + "%";
 }
-
-const TRANSITION_CONFIG = d3
-  .transition()
-  .duration(500)
-  .ease(d3.easeLinear);
-
+/**
+ *
+ * @class
+ * @example
+ * 默认配置
+ *  options = {
+ *    name: "progress", //实例名
+ *    el: document.body, //容器
+ *    options: {
+ *      value: 0, // 进度 0 - 1
+ *      reverse: false, // 是否逆时针
+ *      borderWidth: 10, // 进度条宽度
+ *      radius: 50, // 圆半径,默认为50,实际使用时多为容器宽高最小值的一半
+ *      cx: 100, //圆心x点坐标
+ *      cy: 100, // 圆心y点坐标
+ *      circle: true, // 圆形进度条
+ *      splitConut: 2, // 渐变分段数量
+ *      color: d3.scaleSequential(d3.interpolate("#fff123", "red")), // 配色
+ *      ease: d3.easeCubic, // 缓动函数
+ *      duration: 1000, // 动画时间
+ *      showCircle: true, // 是否显示圆角
+ *      fullIsHideCircle: true, // 转满100%的时候不显示圆角
+ *      showTrack: true, // 是否显示背景轨道
+ *      trackColor: "#ffffff", // 背景轨道底色
+ *      showText: true, // 是否显示title
+ *      text: null, // title内容
+ *      textFormat: textFormat, // text内容格式化回调
+ *      textStyle: {
+ *        color: "#ffffff", // text颜色
+ *        fontSize: "16px", // text字体大小
+ *      },
+ *      changeEndCallback: null, // 动画结束回调
+ *      padding: 14, // 内边距
+ *      showDot: true, // Dot圆环是否显示
+ *      dotRadius: 10, // 圆环半径
+ *      dotThickness: 3, // 圆环边厚度
+ *      dotFill: "#FFF", // 圆环填充颜色,默认为白色,为了盖住path,所以一般不更改
+ *      dotStrokeColor: "#000", // 圆环边颜色
+ *      showInnerCircle: true, // 是否含有内圆
+ *      innerCircleFill: "rgba(0,0,0,1)", // 圆环填充颜色
+ *      innerCircleScale: 0.9, // 内圆与外圆比, 默认为0.9, 值越大内圆越大
+ *    }
+ *   };
+ *
+ */
 class Progress {
   _options = {
-    name: "",
+    name: "progress",
     el: document.body,
     options: {
       // 进度 0 - 1
@@ -38,10 +77,10 @@ class Progress {
       circle: true,
 
       // 圆半径
-      // radius: 50,
+      radius: 50,
       // 圆心位置
-      // cx: 100,
-      // cy: 100,
+      cx: 100, //圆心x点坐标
+      cy: 100, // 圆心y点坐标
 
       // 渐变分段数量
       splitConut: 2,
@@ -60,20 +99,28 @@ class Progress {
       // 背景轨道底色
       trackColor: "#ffffff",
       // 是否显示title
-      showTitle: true,
-      title: null,
-      titleFormat: titleFormat,
-      titleStyle: {
+      showText: true,
+      text: null,
+      textFormat: textFormat,
+      textStyle: {
         color: "#ffffff",
-        fontSize: "16px"
+        fontSize: "16px",
       },
       // 动画结束
       changeEndCallback: null,
       // 内边距
       padding: 14,
-      // resize时触发的方式，有viewbox和animate两种
-      resizeType: "animate"
-    }
+      // Dot相关配置
+      showDot: true,
+      dotRadius: 10,
+      dotThickness: 3,
+      dotFill: "#FFF",
+      dotStrokeColor: "#000",
+      // 是否含有内圆
+      showInnerCircle: true,
+      innerCircleFill: "rgba(0,0,0,1)",
+      innerCircleScale: 0.9,
+    },
   };
 
   color = null;
@@ -89,7 +136,8 @@ class Progress {
   circle_1 = null;
   circle_2 = null;
   background = null;
-  titleDom = null;
+  textDom = null;
+  dot = null;
 
   constructor(options) {
     // 合并参数
@@ -143,6 +191,10 @@ class Progress {
     // 设置容器与内容大小，与父级容器兼容
     this.updateSize();
 
+    // 创建内圆
+    if (options.showInnerCircle) {
+      this.createInnerCircle();
+    }
     // 优先加载轨道背景
     if (options.showTrack) {
       this.createBackground();
@@ -152,8 +204,8 @@ class Progress {
       this.createCircle();
     }
     // 初始化并加载文字
-    if (options.showTitle) {
-      this.createTitle();
+    if (options.showText) {
+      this.createText();
     }
 
     const count = options.splitConut;
@@ -163,9 +215,13 @@ class Progress {
     // 初始化并加载path
     this.initPath(count);
 
+    // 初始化dot
+    if (options.showDot) {
+      this.createDot();
+    }
     // 动画前往对应值
-    this.animation(t => {
-      this.render(t * options.value, true);
+    this.animation((t) => {
+      this.render(t * options.value);
     });
   }
 
@@ -209,11 +265,13 @@ class Progress {
     });
   }
 
+  // 创建轨道两头圆角
   createCircle() {
     this.circle_1 = this.g.append("circle").attr("class", "circle_1");
     this.circle_2 = this.g.append("circle").attr("class", "circle_2");
   }
 
+  // 创建轨道背景
   createBackground() {
     this.background = this.g
       .append("circle")
@@ -221,16 +279,35 @@ class Progress {
       .attr("fill", "none");
   }
 
-  createTitle() {
-    this.titleDom = this.g
+  // 创建文字
+  createText() {
+    this.textDom = this.g
       .append("text")
       .attr("class", "progress-title")
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle");
   }
 
-  render(value, isInit) {
-    this.svg.selectAll("*").interrupt();
+  // 创建轨道上的圆
+  createDot() {
+    this.dot = this.g
+      .append("circle")
+      .attr("r", this.options.dotRadius)
+      .attr("cx", 0)
+      .attr("cy", 0)
+      .attr("class", "dot");
+  }
+
+  createInnerCircle() {
+    this.innerCircle = this.g
+      .append("circle")
+      .attr("r", this.options.radius * this.options.innerCircleScale)
+      .attr("cx", 0)
+      .attr("cy", 0)
+      .attr("fill", this.options.innerCircleFill);
+  }
+
+  render(value) {
     const options = this.options;
     const count = options.splitConut;
     const baseAngle = (Math.PI / 180) * (360 / count);
@@ -239,9 +316,6 @@ class Progress {
     const currentSplit = Math.floor(value / (1 / count));
 
     this.pathList.forEach((path, index) => {
-      if (!isInit && options.resizeType === "animate") {
-        path = path.transition(TRANSITION_CONFIG);
-      }
       if (currentSplit < index) {
         path.attr("d", "");
       } else if (currentSplit === index) {
@@ -249,7 +323,7 @@ class Progress {
           "d",
           this.arc({
             startAngle: baseAngle * index,
-            endAngle: baseAngle * (index + currentSplitValue * count)
+            endAngle: baseAngle * (index + currentSplitValue * count),
           })
         );
         const linear = this.linearList[index];
@@ -264,23 +338,13 @@ class Progress {
           "d",
           this.arc({
             startAngle: baseAngle * index,
-            endAngle: baseAngle * (index + 1)
+            endAngle: baseAngle * (index + 1),
           })
         );
       }
     });
-
-    let background = this.background;
-    let circle_1 = this.circle_1;
-    let circle_2 = this.circle_2;
-    if (!isInit && options.resizeType === "animate") {
-      background = background.transition(TRANSITION_CONFIG);
-      circle_1 = circle_1.transition(TRANSITION_CONFIG);
-      circle_2 = circle_2.transition(TRANSITION_CONFIG);
-    }
-
     // 控制轨道
-    background
+    this.background
       .attr("stroke", options.trackColor)
       .attr("stroke-width", options.borderWidth)
       .attr("r", options.radius + options.borderWidth / 2)
@@ -292,36 +356,45 @@ class Progress {
 
     // 控制圆角
     if (options.showCircle) {
-      circle_1
+      this.circle_1
         .attr("fill", this.color(0))
         .attr("r", options.borderWidth / 2)
         .attr("cy", -options.radius - options.borderWidth / 2);
-      circle_2
-        .attr("fill", this.color(value))
+      this.circle_2
         .attr("r", options.borderWidth / 2)
+        .attr("fill", this.color(value))
         .attr("cx", Math.sin((endAngle * Math.PI) / 180) * borderCenter)
         .attr("cy", -Math.cos((endAngle * Math.PI) / 180) * borderCenter);
 
       if (options.fullIsHideCircle && value === 1) {
-        circle_1.attr("r", 0);
-        circle_2.attr("r", 0);
+        this.circle_1.attr("r", 0);
+        this.circle_2.attr("r", 0);
       } else {
-        circle_1.attr("r", options.borderWidth / 2);
-        circle_2.attr("r", options.borderWidth / 2);
+        this.circle_1.attr("r", options.borderWidth / 2);
+        this.circle_2.attr("r", options.borderWidth / 2);
       }
     }
 
+    if (options.showDot) {
+      this.dot
+        .attr("stroke-width", options.dotThickness)
+        .attr("fill", options.dotFill)
+        .attr("stroke", options.dotStrokeColor)
+        .attr("cx", Math.sin((endAngle * Math.PI) / 180) * borderCenter)
+        .attr("cy", -Math.cos((endAngle * Math.PI) / 180) * borderCenter);
+    }
+
     // 控制中心文字
-    if (options.showTitle && this.titleDom) {
-      this.titleDom
-        .attr("font-size", options.titleStyle.fontSize)
-        .attr("fill", options.titleStyle.color);
-      const title = options.title;
-      if (title || title === 0 || title === "") {
-        this.titleDom.text(title);
+    if (options.showText && this.textDom) {
+      this.textDom
+        .attr("font-size", options.textStyle.fontSize)
+        .attr("fill", options.textStyle.color);
+      const text = options.text;
+      if (text || text === 0 || text === "") {
+        this.textDom.text(text);
       } else {
-        this.titleDom.text(
-          options.titleFormat ? options.titleFormat(value) : value
+        this.textDom.text(
+          options.textFormat ? options.textFormat(value) : value
         );
       }
     }
@@ -340,7 +413,7 @@ class Progress {
     this.options.value = Number(newValue);
 
     // 动画前往新值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(oldValue + diff * t);
     });
   }
@@ -392,13 +465,11 @@ class Progress {
     this.render(this.options.value);
   });
 
-  updateSize(isInit) {
+  updateSize() {
     const options = this.options;
     const offsetWidth = parseInt(this.container.style("width"));
     const offsetHeight = parseInt(this.container.style("height"));
     const minRadius = Math.min(offsetWidth, offsetHeight);
-    const maxRadius = Math.max(offsetWidth, offsetHeight);
-    const xMax = offsetWidth > offsetHeight;
     this.svg.attr("width", "100%").attr("height", "100%");
     options.radius = minRadius / 2 - options.borderWidth - options.padding;
     options.cx = minRadius / 2;
@@ -411,16 +482,10 @@ class Progress {
       .outerRadius(this.options.radius + this.options.borderWidth - 1)
       .padAngle(-Math.PI / 180);
 
-    if (options.resizeType === "viewbox") {
-      this.svg.attr("viewBox", `0 0 ${minRadius} ${minRadius}`);
-    }
+    this.svg.attr("viewBox", `0 0 ${minRadius} ${minRadius}`);
     this.g.attr(
       "transform",
-      options.resizeType === "viewbox"
-        ? `translate(${minRadius / 2},${minRadius / 2})`
-        : `translate(${xMax ? maxRadius / 2 : minRadius / 2},${
-            !xMax ? maxRadius / 2 : minRadius / 2
-          })`
+      "translate(" + minRadius / 2 + "," + minRadius / 2 + ")"
     );
   }
 }

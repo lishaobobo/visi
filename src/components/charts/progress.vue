@@ -49,14 +49,15 @@ export default {
         value: 0.6,
         reverse: false,
         borderWidth: 9,
-        titleStyle: {
+        textStyle: {
           fontSize: this.fontSize + "px",
-          color: "#000000"
+          color: "#FFF"
         },
         trackColor: "#cccccc",
         changeEndCallback: value => {
-          console.log(value);
-        }
+          console.log('Tick end.');
+        },
+        textFormat: value => (`${(value * 100).toFixed(2)}%`)
       }
     };
     this.progress = new Progress(option);

@@ -207,7 +207,6 @@ class Wave extends Base {
     for (var i = 0; i <= options.density * options.waveCount * 2; i++) {
       data.push({ x: i / options.density, y: i / options.density });
     }
-
     const { waveScaleXScale, waveScaleX, waveScaleY, newClipArea } = this;
     // 映射多重波浪为两个直径的宽度
     waveScaleXScale.domain([0, (data.length - 1) / options.density]);
@@ -218,7 +217,7 @@ class Wave extends Base {
       .y0(d => waveScaleY(Math.sin(d.y * 2 * Math.PI)))
       .y1(() => _me.minSize - paddingTotal * 2);
 
-    const { centerStyle, textStyle } = options;
+    const { centerStyle } = options;
 
     // 更新波浪
     this.clipPath
