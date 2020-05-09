@@ -23,9 +23,9 @@ export default {
           img: require("../assets/images/dataRange.png")
         },
         {
-          name: "sphere",
-          router: "sphere",
-          img: require("../assets/images/sphere.png")
+          name: "tree",
+          router: "tree",
+          img: require("../assets/images/tree.png")
         },
         {
           name: "flyLine",
@@ -51,6 +51,11 @@ export default {
           name: "pyramid",
           router: "pyramid",
           img: require("../assets/images/pyramid.png")
+        },
+        {
+          name: "timeline",
+          router: "timeline",
+          img: require("../assets/images/timeline.png")
         }
       ]
     };

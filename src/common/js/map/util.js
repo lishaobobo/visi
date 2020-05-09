@@ -46,7 +46,7 @@ let extend = (function() {
       "[object Array]": "array",
       "[object Date]": "date",
       "[object RegExp]": "regExp",
-      "[object Object]": "object"
+      "[object Object]": "object",
     },
     type = function(obj) {
       return obj == null
@@ -139,21 +139,21 @@ function throttle(func, wait = 150, type = 2) {
   let previous = 0;
   let timeout;
   return function() {
-      if (type === 1){
-          let now = Date.now();
-          if (now - previous > wait) {
-              func();
-              previous = now;
-          }
-      } else if (type === 2){
-          if (!timeout) {
-              timeout = setTimeout(() => {
-                  timeout = null;
-                  func();
-              }, wait)
-          }
+    if (type === 1) {
+      let now = Date.now();
+      if (now - previous > wait) {
+        func();
+        previous = now;
       }
-  }
+    } else if (type === 2) {
+      if (!timeout) {
+        timeout = setTimeout(() => {
+          timeout = null;
+          func();
+        }, wait);
+      }
+    }
+  };
 }
 
 /**
@@ -166,21 +166,20 @@ function throttle(func, wait = 150, type = 2) {
  */
 function debounce(func, wait = 150, immediate = false) {
   let timeout;
-  return function () {
-      if (timeout) clearTimeout(timeout);
-      if (immediate) {
-          var callNow = !timeout;
-          timeout = setTimeout(() => {
-              timeout = null;
-          }, wait)
-          if (callNow) func();
-      }
-      else {
-          timeout = setTimeout(function(){
-              func();
-          }, wait);
-      }
-  }
+  return function() {
+    if (timeout) clearTimeout(timeout);
+    if (immediate) {
+      var callNow = !timeout;
+      timeout = setTimeout(() => {
+        timeout = null;
+      }, wait);
+      if (callNow) func();
+    } else {
+      timeout = setTimeout(function() {
+        func();
+      }, wait);
+    }
+  };
 }
 
 export { colorToHex, extend, transition, uuid, throttle, debounce };

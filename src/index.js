@@ -53,9 +53,14 @@ const routes = [
     component: resolve => require(["./components/charts/pyramid.vue"], resolve)
   },
   {
-    path: "/sphere",
-    name: "sphere",
+    path: "/tree",
+    name: "tree",
     component: resolve => require(["./components/charts/tree.vue"], resolve)
+  },
+  {
+    path: '/timeline',
+    name: 'timeline',
+    component: resolve => require(['./components/charts/timeline.vue'], resolve)
   }
 ];
 

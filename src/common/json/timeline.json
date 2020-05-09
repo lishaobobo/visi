@@ -1,0 +1,327 @@
+{
+	"basic": {
+		"main_start_time": "1587525839",
+		"main_end_time": "1587540898"
+	},
+	"process": [
+		{
+			"base_info": {
+				"process_name": "Explorer.EXE",
+				"process_start_time": 0,
+				"process_terminate_time": 0,
+				"process_birth_time": 1587525839,
+				"command_line": "C:\\Windows\\Explorer.EXE",
+				"process_build_name": "explorer",
+				"process_ext_level": 0,
+				"process_id": 1440,
+				"process_md5": "ac4c51eb24aa95b77f705ab159189e24",
+				"process_net_level": 10,
+				"process_path": "C:\\Windows\\Explorer.EXE",
+				"process_pdb": "explorer.pdb",
+				"process_signer": "",
+				"process_softid": ""
+			},
+			"childs": [
+				{
+					"base_info": {
+						"process_name": "b0067d7c9870f5ee6fcc416b6f8ac065.exe",
+						"process_start_time": 1474602329,
+						"process_terminate_time": 1587540243,
+						"process_birth_time": 1587540138,
+						"command_line": "",
+						"process_build_name": "",
+						"process_ext_level": 0,
+						"process_id": 1252,
+						"process_md5": "b0067d7c9870f5ee6fcc416b6f8ac065",
+						"process_net_level": 40,
+						"process_path": "C:\\Users\\Administrator\\Desktop\\b0067d7c9870f5ee6fcc416b6f8ac065.exe",
+						"process_pdb": "C:\\Users\\Blocked-win7\\Documents\\Visual Studio 2010\\Projects\\mpclient\\Release\\dro_p.pdb",
+						"process_signer": "Accelerate Technologies Limited",
+						"process_softid": ""
+					},
+					"childs": [
+						{
+							"base_info": {
+								"process_name": "MsBuild.exe",
+								"process_start_time": 1587540151,
+								"process_terminate_time": 1587540243,
+								"process_birth_time": 1587540150,
+								"command_line": "",
+								"process_build_name": "",
+								"process_ext_level": 0,
+								"process_id": 3556,
+								"process_md5": "6fdcbd7c5e9ddb78d7df2600285604f9",
+								"process_net_level": 40,
+								"process_path": "C:\\ProgramData\\Microsoft\\DeviceSync\\MsBuild.exe",
+								"process_pdb": "",
+								"process_signer": "Accelerate Technologies Limited",
+								"process_softid": ""
+							},
+							"childs": [],
+							"actions": [
+								{
+									"name": "HiddenWindow",
+									"event_time": 1587540152,
+									"event_index": 80738,
+									"event_tick64": 23128847,
+									"meta": {
+										"file_build_name": "",
+										"file_ext_level": 0,
+										"file_md5": "6fdcbd7c5e9ddb78d7df2600285604f9",
+										"file_net_level": 40,
+										"file_pdb": "",
+										"file_signer": "Accelerate Technologies Limited",
+										"file_softid": ""
+									}
+								},
+								{
+									"name": "CreateProcess",
+									"event_time": 1587540156,
+									"event_index": 80793,
+									"event_tick64": 23129893,
+									"meta": {
+										"action_time": 1587540153,
+										"action_type": "process_create"
+									}
+								},
+								{
+									"name": "LoadImage",
+									"event_time": 1587540158,
+									"event_index": 80878,
+									"event_tick64": 23131999,
+									"meta": {
+										"action_time": "1587540153",
+										"action_type": "process_moudle_load",
+										"file_build_name": "",
+										"file_ext_level": 0,
+										"file_md5": "6fdcbd7c5e9ddb78d7df2600285604f9",
+										"file_net_level": 40,
+										"file_path": "C:\\ProgramData\\Microsoft\\DeviceSync\\MsBuild.exe",
+										"file_pdb": "",
+										"file_signer": "Accelerate Technologies Limited",
+										"file_softid": ""
+									}
+								},
+								{
+									"name": "TerminateProcess",
+									"event_time": 1587540243,
+									"event_index": 83889,
+									"event_tick64": 23217145,
+									"meta": {
+										"DirQueryTimes": "0",
+										"FileOpenExtsCount": "0",
+										"FileOpenExtsString": "",
+										"NetConnect": "0",
+										"PEWriteTimes": "0",
+										"action_time": "1587540243",
+										"action_type": "process_close"
+									}
+								}
+							]
+						},
+						{
+							"base_info": {
+								"process_name": "java-rmi.exe",
+								"process_start_time": 1587540153,
+								"process_terminate_time": 1587540166,
+								"process_birth_time": 1587540150,
+								"command_line": "C:\\ProgramData\\Microsoft\\DeviceSync\\java-rmi.exe",
+								"process_build_name": "java-rmi",
+								"process_ext_level": 0,
+								"process_id": 2276,
+								"process_md5": "09eabd6f36ecc85644dce5c3bd709f29",
+								"process_net_level": 10,
+								"process_path": "C:\\ProgramData\\Microsoft\\DeviceSync\\java-rmi.exe",
+								"process_pdb": "c:\\re\\workspace\\8-2-build-windows-i586-cygwin\\jdk8u91\\6644\\build\\windows-i586\\jdk\\objs\\java-rmi_objs\\java-rmi.pdb",
+								"process_signer": "Oracle America, Inc.",
+								"process_softid": ""
+							},
+							"childs": [],
+							"actions": [
+								{
+									"name": "CreateProcess",
+									"event_time": 1587540154,
+									"event_index": 80781,
+									"event_tick64": 23128677,
+									"meta": {
+										"action_time": 1587540153,
+										"action_type": "process_create"
+									}
+								},
+								{
+									"name": "LoadImage",
+									"event_time": 1587540156,
+									"event_index": 80862,
+									"event_tick64": 23130049,
+									"meta": {
+										"action_time": "1587540153",
+										"action_type": "process_moudle_load",
+										"file_build_name": "java",
+										"file_ext_level": 0,
+										"file_md5": "09eabd6f36ecc85644dce5c3bd709f29",
+										"file_net_level": 10,
+										"file_path": "C:\\ProgramData\\Microsoft\\DeviceSync\\java-rmi.exe",
+										"file_pdb": "c:\\re\\workspace\\8-2-build-windows-i586-cygwin\\jdk8u91\\6644\\build\\windows-i586\\jdk\\objs\\java-rmi_objs\\java-rmi.pdb",
+										"file_signer": "Oracle America, Inc.",
+										"file_softid": ""
+									}
+								},
+								{
+									"name": "UnsignedModuleLoad",
+									"event_time": 1587540162,
+									"event_index": 81237,
+									"event_tick64": 23135915,
+									"meta": {
+										"file_build_name": "",
+										"file_ext_level": 0,
+										"file_md5": "253e25a007552f11346a289c2cdb9bb0",
+										"file_net_level": 30,
+										"file_path": "C:\\programdata\\microsoft\\devicesync\\jli.dll",
+										"file_pdb": "C:\\Users\\Blocked-win7\\Documents\\Visual Studio 2010\\Projects\\mpclient\\Release\\java-rmi_jli.pdb",
+										"file_signer": "",
+										"file_softid": ""
+									}
+								},
+								{
+									"name": "TerminateProcess",
+									"event_time": 1587540166,
+									"event_index": 81382,
+									"event_tick64": 23140579,
+									"meta": {
+										"DirQueryTimes": "0",
+										"FileOpenExtsCount": "0",
+										"FileOpenExtsString": "",
+										"NetConnect": "0",
+										"PEWriteTimes": "0",
+										"action_time": "1587540157",
+										"action_type": "process_close"
+									}
+								}
+							]
+						}
+					],
+					"actions": [
+						{
+							"name": "PeFileWritten",
+							"event_time": 1587540140,
+							"event_index": 80434,
+							"event_tick64": 23114231,
+							"meta": {
+								"action_count": "1",
+								"action_time": 1587540142,
+								"action_type": "process_file",
+								"file_action": "FILE_CREATE|FILE_WRITE",
+								"file_build_name": "",
+								"file_device": "HD",
+								"file_ext_level": 0,
+								"file_hidden": "0",
+								"file_md5": "253e25a007552f11346a289c2cdb9bb0",
+								"file_net_level": 30,
+								"file_path": "c:\\programdata\\microsoft\\devicesync\\jli.dll",
+								"file_pdb": "C:\\Users\\Blocked-win7\\Documents\\Visual Studio 2010\\Projects\\mpclient\\Release\\java-rmi_jli.pdb",
+								"file_signer": "",
+								"file_size": "33.500",
+								"file_softid": "",
+								"open_result": "file_created"
+							}
+						},
+						{
+							"name": "PeFileWritten",
+							"event_time": 1587540151,
+							"event_index": 80722,
+							"event_tick64": 23125385,
+							"meta": {
+								"action_count": "2",
+								"action_time": 1587540153,
+								"action_type": "process_file",
+								"file_action": "FILE_CREATE|FILE_WRITE",
+								"file_build_name": "",
+								"file_device": "HD",
+								"file_ext_level": 0,
+								"file_hidden": "0",
+								"file_md5": "6fdcbd7c5e9ddb78d7df2600285604f9",
+								"file_net_level": 40,
+								"file_path": "c:\\programdata\\microsoft\\devicesync\\msbuild.exe",
+								"file_pdb": "",
+								"file_signer": "Accelerate Technologies Limited",
+								"file_size": "188.148",
+								"file_softid": "",
+								"open_result": "file_created"
+							}
+						},
+						{
+							"name": "PeFileWritten",
+							"event_time": 1587540151,
+							"event_index": 80626,
+							"event_tick64": 23125026,
+							"meta": {
+								"action_count": "1",
+								"action_time": 1587540152,
+								"action_type": "process_file",
+								"file_action": "FILE_CREATE|FILE_WRITE",
+								"file_build_name": "java",
+								"file_device": "HD",
+								"file_ext_level": 0,
+								"file_hidden": "0",
+								"file_md5": "09eabd6f36ecc85644dce5c3bd709f29",
+								"file_net_level": 10,
+								"file_path": "c:\\programdata\\microsoft\\devicesync\\java-rmi.exe",
+								"file_pdb": "c:\\re\\workspace\\8-2-build-windows-i586-cygwin\\jdk8u91\\6644\\build\\windows-i586\\jdk\\objs\\java-rmi_objs\\java-rmi.pdb",
+								"file_signer": "Oracle America, Inc.",
+								"file_size": "15.563",
+								"file_softid": "",
+								"open_result": "file_created"
+							}
+						},
+						{
+							"name": "TerminateProcess",
+							"event_time": 1587540243,
+							"event_index": 83888,
+							"event_tick64": 23217004,
+							"meta": {
+								"DirQueryTimes": "0",
+								"FileOpenExtsCount": "0",
+								"FileOpenExtsString": "",
+								"NetConnect": "0",
+								"PEWriteTimes": "2",
+								"action_time": "1587540243",
+								"action_type": "process_close"
+							}
+						}
+					]
+				}
+			],
+			"actions": [
+				{
+					"name": "FileRenameInfo",
+					"event_time": 1587540124,
+					"event_index": 79092,
+					"event_tick64": 23097913,
+					"meta": {
+						"action_count": "3",
+						"action_time": "1587540126",
+						"action_type": "process_file",
+						"file_action": "FILE_OPEN|FILE_RENAME",
+						"file_oldpath": "c:\\users\\administrator\\appdata\\local\\temp\\vmware-administrator\\vmwarednd\\7a9bc074\\b0067d7c9870f5ee6fcc416b6f8ac065",
+						"file_path": "C:\\Users\\Administrator\\Desktop\\b0067d7c9870f5ee6fcc416b6f8ac065"
+					}
+				},
+				{
+					"name": "NewExecutableRenamed",
+					"event_time": 1587540132,
+					"event_index": 80032,
+					"event_tick64": 23105916,
+					"meta": {
+						"action_count": "3",
+						"action_time": "1587540132",
+						"action_type": "process_file",
+						"file_action": "FILE_OPEN|FILE_RENAME",
+						"file_hidden": "0",
+						"file_oldpath": "C:\\Users\\Administrator\\Desktop\\b0067d7c9870f5ee6fcc416b6f8ac065",
+						"file_path": "C:\\Users\\Administrator\\Desktop\\b0067d7c9870f5ee6fcc416b6f8ac065.exe"
+					}
+				}
+			]
+		}
+	]
+}

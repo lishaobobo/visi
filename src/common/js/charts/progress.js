@@ -28,24 +28,25 @@ function textFormat(value) {
  *    options: {
  *      value: 0, // 进度 0 - 1
  *      reverse: false, // 是否逆时针
- *      borderWidth: 10, // 进度条宽度
+ *      borderWidth: 10, // 进度条厚度
  *      radius: 50, // 圆半径,默认为50,实际使用时多为容器宽高最小值的一半
  *      cx: 100, //圆心x点坐标
  *      cy: 100, // 圆心y点坐标
  *      circle: true, // 圆形进度条
  *      splitConut: 2, // 渐变分段数量
- *      color: d3.scaleSequential(d3.interpolate("#fff123", "red")), // 配色
+ *      startColor: "",//开始颜色
+ *      endColor: "", //结束颜色
  *      ease: d3.easeCubic, // 缓动函数
  *      duration: 1000, // 动画时间
  *      showCircle: true, // 是否显示圆角
  *      fullIsHideCircle: true, // 转满100%的时候不显示圆角
  *      showTrack: true, // 是否显示背景轨道
- *      trackColor: "#ffffff", // 背景轨道底色
+ *      trackColor: "#ffffff", // 背景轨道底色  rgba || 16进制
  *      showText: true, // 是否显示title
  *      text: null, // title内容
  *      textFormat: textFormat, // text内容格式化回调
  *      textStyle: {
- *        color: "#ffffff", // text颜色
+ *        color: "#ffffff", // text颜色 rgba || 16进制
  *        fontSize: "16px", // text字体大小
  *      },
  *      changeEndCallback: null, // 动画结束回调
@@ -56,7 +57,7 @@ function textFormat(value) {
  *      dotFill: "#FFF", // 圆环填充颜色,默认为白色,为了盖住path,所以一般不更改
  *      dotStrokeColor: "#000", // 圆环边颜色
  *      showInnerCircle: true, // 是否含有内圆
- *      innerCircleFill: "rgba(0,0,0,1)", // 圆环填充颜色
+ *      innerCircleFill: "rgba(0,0,0,1)", // 圆环填充颜色 rgba || 16进制 || hal || hsv || lab
  *      innerCircleScale: 0.9, // 内圆与外圆比, 默认为0.9, 值越大内圆越大
  *    }
  *   };
@@ -76,6 +77,11 @@ class Progress {
       // 圆形进度条
       circle: true,
 
+      //开始颜色
+      startColor: "#000",
+      //结束颜色
+      endColor: "#fff",
+
       // 圆半径
       radius: 50,
       // 圆心位置
@@ -84,8 +90,6 @@ class Progress {
 
       // 渐变分段数量
       splitConut: 2,
-      // 配色
-      color: d3.scaleSequential(d3.interpolate("#fff123", "red")),
       // 缓动函数
       ease: d3.easeCubic,
       // 动画时间
@@ -162,13 +166,9 @@ class Progress {
     this.uuid = util.uuid();
 
     // 检测颜色
-    if (typeof this.options.color === "string") {
-      this.color = d3.scaleSequential(
-        d3.interpolate(this.options.color, this.options.color)
-      );
-    } else {
-      this.color = this.options.color;
-    }
+    this.color = d3.scaleSequential(
+      d3.interpolate(this.options.startColor, this.options.endColor)
+    );
 
     // 初始化内容
     this.init();
@@ -290,6 +290,7 @@ class Progress {
 
   // 创建轨道上的圆
   createDot() {
+    this.options.dotRadius = this.options.borderWidth;
     this.dot = this.g
       .append("circle")
       .attr("r", this.options.dotRadius)
@@ -391,9 +392,9 @@ class Progress {
         .attr("fill", options.textStyle.color);
       const text = options.text;
       if (text || text === 0 || text === "") {
-        this.textDom.text(text);
+        this.textDom.html(text);
       } else {
-        this.textDom.text(
+        this.textDom.html(
           options.textFormat ? options.textFormat(value) : value
         );
       }
@@ -429,11 +430,11 @@ class Progress {
       this.transition.interrupt();
     }
 
-    this.transition = d3
+    this.transition = this.g
       .transition()
       .duration(options.duration)
       .ease(options.ease)
-      .attrTween("value", () => {
+      .tween("_", () => {
         return tickCallback;
       })
       .on("end", () => {
@@ -472,6 +473,7 @@ class Progress {
     const minRadius = Math.min(offsetWidth, offsetHeight);
     this.svg.attr("width", "100%").attr("height", "100%");
     options.radius = minRadius / 2 - options.borderWidth - options.padding;
+    console.log(options.borderWidth)
     options.cx = minRadius / 2;
     options.cy = minRadius / 2;
 

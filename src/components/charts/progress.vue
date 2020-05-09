@@ -9,7 +9,7 @@
         <button @click="fontSize += 10">font size +10</button>
         <button @click="progress.resize()">resize</button>
       </div>
-      <div class="chart-box" ref="progress" />
+      <div v-for="item in list" :key="item" ref="progress" class="chart-box"></div>
     </div>
   </div>
 </template>
@@ -20,7 +20,8 @@ export default {
   data() {
     return {
       value: 60,
-      fontSize: 40
+      fontSize: 40,
+      list: [1]
     };
   },
   watch: {
@@ -48,22 +49,35 @@ export default {
       options: {
         value: 0.6,
         reverse: false,
-        borderWidth: 9,
+        borderWidth: 10,
         textStyle: {
           fontSize: this.fontSize + "px",
           color: "#FFF"
         },
+        startColor: '#f00',
+        endColor: '#ff0',
         trackColor: "#cccccc",
         changeEndCallback: value => {
           console.log('Tick end.');
         },
-        textFormat: value => (`${(value * 100).toFixed(2)}%`)
+        textFormat: value => (`<tspan>${(value * 100).toFixed(2)}</tspan><tspan style='font-size:12px'>%</tspan>`)
       }
     };
-    this.progress = new Progress(option);
-    window.addEventListener("resize", () => {
-      this.progress.resize();
-    });
+    this.$nextTick(() => {
+      this.list.forEach((item, i) => {
+        option.el = this.$refs.progress[i]
+        this.progress = new Progress(option);
+        window.addEventListener("resize", () => {
+          this.progress.resize();
+        });
+      })
+
+    })
   }
 };
 </script>
+<style >
+body {
+  overflow: scroll;
+}
+</style>
