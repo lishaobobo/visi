@@ -58,7 +58,7 @@
     "d3": "5.9.2",
     "d3-fetch": "1.1.2",
     "es6-promise": "4.2.6",
-    "jquery": "3.4.1",
+    "jquery": "3.5.0",
     "jsnetworkx": "0.3.4",
     "loadsh": "^0.0.4",
     "lodash": "4.17.15",
