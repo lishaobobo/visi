@@ -5,7 +5,6 @@
 </template>
 <script>
 import * as d3 from "d3";
-import $ from "jquery";
 import data from '../../common/json/timeline.json'
 
 export default {

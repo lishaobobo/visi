@@ -9,7 +9,7 @@ import axios from 'axios'
 import Tree from '../../common/js/charts/tree'
 import all from '../../common/data/all.csv'
 import * as jsnx from 'jsnetworkx'
-import _ from 'loadsh'
+import _ from 'lodash'
 export default {
   name: 'tree',
   data() {
