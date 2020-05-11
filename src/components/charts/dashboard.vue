@@ -19,7 +19,7 @@ import Dashboard from "js/charts/dashboard";
 export default {
   data() {
     return {
-      value: 60,
+      value: 100,
       fontSize: 40,
       list: [1]
     };
@@ -47,17 +47,19 @@ export default {
       name: "dashboard",
       el: this.$refs.dashboard,
       options: {
-        value: 0.6,
+        value: 1,
         reverse: false,
         borderWidth: 10,
         textStyle: {
           fontSize: this.fontSize + "px",
           color: "#FFF"
         },
-        splitConut: 5,
+        splitConut: 2,
         startColor: '#f00',
         endColor: '#ff0',
         trackColor: "#cccccc",
+        allAngle: 360,
+        offsetAngle: 180,
         changeEndCallback: value => {
           console.log('Tick end.');
         },

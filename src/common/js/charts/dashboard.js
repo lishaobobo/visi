@@ -1,17 +1,20 @@
 import * as d3 from "d3";
 import * as util from "../map/util";
 
-function getSplitInfo(total, index, allAngle = 360) {
-  const diffAngle = 360 - allAngle;
+function getSplitInfo(total, index, allAngle = 360, offset = 0) {
+  const diffAngle = allAngle / 360;
   const innerAngleTotal = 180 * (total - 2);
   const oneAngleTotal = innerAngleTotal / total;
-  const angle =
+  let angle =
     oneAngleTotal - (oneAngleTotal / 2 + (180 - oneAngleTotal) * index);
-  console.log(angle);
+  angle += offset;
+  angle += 90;
+  angle *= diffAngle;
+  angle -= 90;
   return {
     angle,
     x: Math.sin((angle * Math.PI) / 180),
-    y: Math.cos((angle * Math.PI) / 180),
+    y: Math.cos((angle * Math.PI) / 180)
   };
 }
 
@@ -109,7 +112,7 @@ class Dashboard {
       textFormat: textFormat,
       textStyle: {
         color: "#ffffff",
-        fontSize: "16px",
+        fontSize: "16px"
       },
       // 动画结束
       changeEndCallback: null,
@@ -125,7 +128,9 @@ class Dashboard {
       showInnerCircle: true,
       innerCircleFill: "rgba(0,0,0,1)",
       innerCircleScale: 0.9,
-    },
+      allAngle: 360,
+      offsetAngle: 0
+    }
   };
 
   color = null;
@@ -221,7 +226,7 @@ class Dashboard {
       this.createDot();
     }
     // 动画前往对应值
-    this.animation((t) => {
+    this.animation(t => {
       this.render(t * options.value);
     });
   }
@@ -229,13 +234,19 @@ class Dashboard {
   initLinear(count) {
     this.linearList.length = count;
     this.linearList = Array.from(this.linearList).map((_, index) => {
-      const linearGradientInfo = getSplitInfo(count, index);
+      const linearGradientInfo = getSplitInfo(
+        count,
+        index,
+        this.options.allAngle,
+        this.options.offsetAngle
+      );
+      console.log(linearGradientInfo)
       const linearGradient = this.defs
         .append("linearGradient")
-        .attr("x1", linearGradientInfo.x >= 0 ? 0 : -linearGradientInfo.x)
-        .attr("x2", linearGradientInfo.x >= 0 ? linearGradientInfo.x : 0)
-        .attr("y1", linearGradientInfo.y >= 0 ? 0 : -linearGradientInfo.y)
-        .attr("y2", linearGradientInfo.y >= 0 ? linearGradientInfo.y : 0)
+        .attr("x1", -linearGradientInfo.x)
+        .attr("y1", -linearGradientInfo.y)
+        .attr("x2", linearGradientInfo.x)
+        .attr("y2", linearGradientInfo.y)
         .attr("class", this.uuid)
         .attr("id", this.uuid + "_" + (index + 1));
 
@@ -312,7 +323,8 @@ class Dashboard {
   render(value) {
     const options = this.options;
     const count = options.splitConut;
-    const baseAngle = (Math.PI / 180) * (360 / count);
+    const baseAngle = (Math.PI / 180) * (options.allAngle / count);
+    const offset = (Math.PI / 180) * options.offsetAngle;
     // 防止 1 % 0.1 === 0.999999999999999;
     const currentSplitValue = value === 1 ? 0 : value % (1 / count);
     const currentSplit = Math.floor(value / (1 / count));
@@ -324,8 +336,8 @@ class Dashboard {
         path.attr(
           "d",
           this.arc({
-            startAngle: baseAngle * index,
-            endAngle: baseAngle * (index + currentSplitValue * count),
+            startAngle: baseAngle * index + offset,
+            endAngle: baseAngle * (index + currentSplitValue * count) + offset
           })
         );
         const linear = this.linearList[index];
@@ -339,8 +351,8 @@ class Dashboard {
         path.attr(
           "d",
           this.arc({
-            startAngle: baseAngle * index,
-            endAngle: baseAngle * (index + 1),
+            startAngle: baseAngle * index + offset,
+            endAngle: baseAngle * (index + 1) + offset
           })
         );
       }
@@ -353,7 +365,8 @@ class Dashboard {
       .attr("cx", 0)
       .attr("cy", 0);
 
-    const endAngle = (360 / count) * (currentSplit + currentSplitValue * count);
+    const endAngle =
+      (options.allAngle / count) * (currentSplit + currentSplitValue * count);
     const borderCenter = options.radius + options.borderWidth / 2;
 
     // 控制圆角
@@ -361,12 +374,27 @@ class Dashboard {
       this.circle_1
         .attr("fill", this.color(0))
         .attr("r", options.borderWidth / 2)
-        .attr("cy", -options.radius - options.borderWidth / 2);
+        .attr(
+          "cx",
+          Math.sin((options.offsetAngle * Math.PI) / 180) * borderCenter
+        )
+        .attr(
+          "cy",
+          -Math.cos((options.offsetAngle * Math.PI) / 180) * borderCenter
+        );
       this.circle_2
         .attr("r", options.borderWidth / 2)
         .attr("fill", this.color(value))
-        .attr("cx", Math.sin((endAngle * Math.PI) / 180) * borderCenter)
-        .attr("cy", -Math.cos((endAngle * Math.PI) / 180) * borderCenter);
+        .attr(
+          "cx",
+          Math.sin(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        )
+        .attr(
+          "cy",
+          -Math.cos(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        );
 
       if (options.fullIsHideCircle && value === 1) {
         this.circle_1.attr("r", 0);
@@ -382,8 +410,16 @@ class Dashboard {
         .attr("stroke-width", options.dotThickness)
         .attr("fill", options.dotFill)
         .attr("stroke", options.dotStrokeColor)
-        .attr("cx", Math.sin((endAngle * Math.PI) / 180) * borderCenter)
-        .attr("cy", -Math.cos((endAngle * Math.PI) / 180) * borderCenter);
+        .attr(
+          "cx",
+          Math.sin(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        )
+        .attr(
+          "cy",
+          -Math.cos(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        );
     }
 
     // 控制中心文字
@@ -415,7 +451,7 @@ class Dashboard {
     this.options.value = Number(newValue);
 
     // 动画前往新值
-    this.animation((t) => {
+    this.animation(t => {
       this.render(oldValue + diff * t);
     });
   }
@@ -474,7 +510,7 @@ class Dashboard {
     const minRadius = Math.min(offsetWidth, offsetHeight);
     this.svg.attr("width", "100%").attr("height", "100%");
     options.radius = minRadius / 2 - options.borderWidth - options.padding;
-    console.log(options.borderWidth)
+    console.log(options.borderWidth);
     options.cx = minRadius / 2;
     options.cy = minRadius / 2;
 
