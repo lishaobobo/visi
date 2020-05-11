@@ -56,6 +56,11 @@ export default {
           name: "timeline",
           router: "timeline",
           img: require("../assets/images/timeline.png")
+        },
+        {
+          name: "dashboard",
+          router: "dashboard",
+          img: require("../assets/images/timeline.png")
         }
       ]
     };
