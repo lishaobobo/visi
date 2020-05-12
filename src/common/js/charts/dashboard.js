@@ -11,10 +11,12 @@ function getSplitInfo(total, index, allAngle = 360, offset = 0) {
   angle += 90;
   angle *= diffAngle;
   angle -= 90;
+  const startAngle = angle  - oneAngleTotal / 2;
   return {
     angle,
-    x: Math.sin((angle * Math.PI) / 180),
-    y: Math.cos((angle * Math.PI) / 180)
+    startAngle,
+    x: Math.sin((Math.abs(startAngle) * Math.PI) / 180),
+    y: Math.cos((Math.abs(startAngle) * Math.PI) / 180)
   };
 }
 
@@ -233,20 +235,23 @@ class Dashboard {
 
   initLinear(count) {
     this.linearList.length = count;
-    this.linearList = Array.from(this.linearList).map((_, index) => {
-      const linearGradientInfo = getSplitInfo(
+    const splitList = Array.from(this.linearList).map((_, index) =>
+      getSplitInfo(
         count,
         index,
         this.options.allAngle,
         this.options.offsetAngle
-      );
-      console.log(linearGradientInfo)
+      )
+    );
+    console.log(splitList);
+    this.linearList = splitList.map((linearGradientInfo, index) => {
+      const nextIndex = index === splitList.length - 1 ? 0 : index + 1;
       const linearGradient = this.defs
         .append("linearGradient")
-        .attr("x1", -linearGradientInfo.x)
-        .attr("y1", -linearGradientInfo.y)
-        .attr("x2", linearGradientInfo.x)
-        .attr("y2", linearGradientInfo.y)
+        .attr("x1", linearGradientInfo.x)
+        .attr("y1", linearGradientInfo.y)
+        .attr("x2", splitList[nextIndex].x)
+        .attr("y2", splitList[nextIndex].y)
         .attr("class", this.uuid)
         .attr("id", this.uuid + "_" + (index + 1));
 
