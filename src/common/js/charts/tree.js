@@ -137,7 +137,7 @@ class Tree {
       .style("cursor", "pointer")
       .on("click", (d) => this.eventCallback(d))
       .on("mouseenter", (d) => this.mouseEnter(d))
-      .on("mouseout", () => this.mouseOut);
+      .on("mouseout", this.mouseOut.bind(this));
 
     node
       .append("text")
@@ -161,15 +161,26 @@ class Tree {
   }
 
   mouseOut() {
-    this.tooltip.style("opacity", 0);
+    this.tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", 0)
+      .style("left", 0)
+      .style("top", 0);
   }
   mouseEnter(d) {
-    let { data } = d;
-    delete data.children;
-    Object.keys(data).forEach((item) => {
-      this.tooltip.append("p").text(data[item]);
+    this.tooltip
+      .transition()
+      .duration(200)
+      .style("opacity", 0.9);
+    let str = ``;
+    Object.keys(d.data).forEach((item) => {
+      if (item !== "children") str += `${item}:${d.data[item]}<br/>`;
     });
-    this.tooltip.style("opacity", 1);
+    this.tooltip
+      .html(str)
+      .style("left", d3.event.pageX + 10 + "px")
+      .style("top", d3.event.pageY + 5 + "px");
   }
 
   btnClick(d) {
