@@ -2,21 +2,38 @@ import * as d3 from "d3";
 import * as util from "../map/util";
 
 function getSplitInfo(total, index, allAngle = 360, offset = 0) {
-  const diffAngle = allAngle / 360;
-  const innerAngleTotal = 180 * (total - 2);
-  const oneAngleTotal = innerAngleTotal / total;
-  let angle =
-    oneAngleTotal - (oneAngleTotal / 2 + (180 - oneAngleTotal) * index);
-  angle += offset;
-  angle += 90;
-  angle *= diffAngle;
-  angle -= 90;
-  const startAngle = angle  - oneAngleTotal / 2;
+  const leftOffset =  allAngle / 10;
+  const steep = allAngle / 5;
+  let angle = 90 - leftOffset - steep * index;
+  angle -= offset;
+  angle += 360;
+  angle %= 360;
+  let x1 = 0;
+  let x2 = 0;
+  let y1 = 0;
+  let y2 = 0;
+  if (angle <= 90) {
+    x2 = 1;
+    y2 = 1;
+  } else if (angle <= 180) {
+    const _angle = angle - 90;
+    x2 = 1;
+    y1 = 1;
+  } else if (angle <= 270) {
+    const _angle = angle - 180;
+    x1 = 1;
+    y1 = 1;
+  } else if (angle < 360) {
+    const _angle = angle - 270;
+    x1 = 1;
+    y2 = 1;
+  }
   return {
     angle,
-    startAngle,
-    x: Math.sin((Math.abs(startAngle) * Math.PI) / 180),
-    y: Math.cos((Math.abs(startAngle) * Math.PI) / 180)
+    x1,
+    x2,
+    y1,
+    y2
   };
 }
 
@@ -248,10 +265,10 @@ class Dashboard {
       const nextIndex = index === splitList.length - 1 ? 0 : index + 1;
       const linearGradient = this.defs
         .append("linearGradient")
-        .attr("x1", linearGradientInfo.x)
-        .attr("y1", linearGradientInfo.y)
-        .attr("x2", splitList[nextIndex].x)
-        .attr("y2", splitList[nextIndex].y)
+        .attr("x1", linearGradientInfo.x1)
+        .attr("y1", linearGradientInfo.y1)
+        .attr("x2", linearGradientInfo.x2)
+        .attr("y2", linearGradientInfo.y2)
         .attr("class", this.uuid)
         .attr("id", this.uuid + "_" + (index + 1));
 

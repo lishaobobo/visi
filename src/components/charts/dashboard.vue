@@ -54,12 +54,12 @@ export default {
           fontSize: this.fontSize + "px",
           color: "#FFF"
         },
-        splitConut: 3,
+        splitConut: 5,
         startColor: '#f00',
         endColor: '#ff0',
         trackColor: "#cccccc",
-        allAngle: 360,
-        offsetAngle: 0,
+        allAngle: 270,
+        offsetAngle: -135,
         changeEndCallback: value => {
           console.log('Tick end.');
         },
