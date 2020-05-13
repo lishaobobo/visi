@@ -104,6 +104,8 @@ module.exports = {
       components: join(APP_PATH, "components"), // 定义文件路径， 加速打包过程中webpack路径查找过程
       sass: join(APP_PATH, "sass"),
       js: join(APP_PATH, "common/js"),
+      'assets': resolve('src/assets'),
+      '@': resolve('src'),
     },
     extensions: [".js", ".scss", ".vue", ".json"], // 可以不加后缀, 直接使用 import xx from 'xx' 的语法
   },

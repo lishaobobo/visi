@@ -1,15 +1,59 @@
 <template>
   <div ref="svg" class="tree">
-    <p @click="resetZoom" style="font-size:40px;text-align: center">点击重置</p>
+    <!-- <p @click="resetZoom" style="font-size:40px;text-align: center">点击重置</p> -->
   </div>
 </template>
 <script>
 import * as d3 from "d3";
 import axios from 'axios'
-import Tree from '../../common/js/charts/tree'
-import all from '../../common/data/all.csv'
-import * as jsnx from 'jsnetworkx'
-import _ from 'lodash'
+import Tree from '@/common/js/charts/tree'
+import all from '@/common/data/all.csv'
+import data from '@/common/data/treeData'
+
+import reset from "assets/images/reset.svg";
+import amplification from "assets/images/amplification.svg";
+import shrink from "assets/images/shrink.svg";
+const scaleIcon = [
+  {
+    path: amplification,
+    name: 'amplification'
+  },
+  {
+    path: shrink,
+    name: 'shrink'
+  },
+  {
+    path: reset,
+    name: 'reset'
+  }
+];
+
+import progress from 'assets/images/progress.svg'
+import drapedLine from 'assets/images/drapedLine.svg'
+import sample from 'assets/images/sample.svg'
+import drapedFile from 'assets/images/drapedFile.svg'
+import progressStart from 'assets/images/progressStart.svg'
+const legend = [
+  {
+    path: sample,
+    name: '样本'
+  },
+  {
+    path: drapedFile,
+    name: '释放的文件'
+  }, {
+    path: progress,
+    name: '进程'
+  }, {
+    path: progressStart,
+    name: '启动进程'
+  }, {
+    path: drapedLine,
+    name: '释放文件'
+  },
+]
+
+
 export default {
   name: 'tree',
   data() {
@@ -26,13 +70,21 @@ export default {
     }
   },
   mounted() {
-    d3.csv('/assets/csv/all.csv').then((res) => {
-      delete res.columns;
-      // 去重之后处理
-      let data = this.processData(_.uniqBy(res, 'Data.process_id'));
-      this.root = this.tree(data);
-      this.draw(this.root)
-    })
+    // d3.csv('/assets/csv/all.csv').then((res)˜ => {
+    //   delete res.columns;
+    //   // 去重之后处理
+    //   let data = this.processData(_.uniqBy(res, 'Data.process_id'));
+    //   // data.children.length = 5
+    //   this.root = this.tree(data);
+    //   this.draw(this.root)
+    // })
+    data.children.length = 3
+    const tree = new Tree({
+      el: this.$refs.svg,
+      data,
+      scaleIcon,
+      legend
+    });
   },
   methods: {
     resetZoom() {
@@ -189,18 +241,10 @@ export default {
       this.g = this.svg.append('g')
         .attr('class', 'container')
         .attr("font-family", "sans-serif")
-        .attr("font-size", 16);
+        .attr("font-size", 16)
+        .attr("transform", `translate(${this.root.dy / 3},${this.root.dx - this.x0})`);
       this.zoom = d3.zoom().on("zoom", this.zoomed)
-      this.timer = null;
       this.svg.call(this.zoom)
-      // this.svg.call(() => {
-      //   console.log(123)
-      //   if (this.timer) clearTimeout(this.timer)
-      //   this.timer = setTimeout(() => {
-      //     // console.log(123)
-      //     return this.zoom
-      //   }, 500)
-      // });
     },
     flag() {
       if (this.timer) clearTimeout(this.timer);
@@ -211,14 +255,12 @@ export default {
     zoomed() {
       if (this.timer) clearTimeout(this.timer);
       let { transform } = d3.event;
-      this.timer = setTimeout(() => {
-        this.g.attr("transform", transform)
-      }, 300)
+      this.g.attr("transform", transform)
     },
     tree(data) {
       if (!data) throw new Error('data is not defined');
       const root = d3.hierarchy(data);
-      root.dx = document.documentElement.clientHeight / root.children.length;
+      root.dx = 30
       root.dy = document.documentElement.clientWidth / (root.height + 1);
       return d3.tree()
         .nodeSize([root.dx, root.dy])(root);
@@ -267,3 +309,33 @@ export default {
   }
 }
 </script>
+<style>
+.tree {
+  width: 100vw;
+  height: 100vh;
+}
+.scaleBtn {
+  text-align: right;
+  position: absolute;
+  right: 0;
+  display: flex;
+}
+.icon {
+  margin-right: 10px;
+}
+.legend {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  background-color: #c2ebff;
+  padding: 15px;
+  border-radius: 5px;
+}
+.legend p {
+  height: 30px;
+  margin-bottom: 5px;
+}
+.legend p:last-child{
+  margin: 0;
+}
+</style>

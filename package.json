@@ -58,7 +58,6 @@
     "d3": "5.9.2",
     "d3-fetch": "1.1.2",
     "es6-promise": "4.2.6",
-    "jsnetworkx": "0.3.4",
     "lodash": "4.17.15",
     "node-sass": "4.13.1",
     "three": "0.107.0",
