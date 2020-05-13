@@ -1,5 +1,7 @@
 import * as d3 from "d3";
-function eventCallback() {}
+function eventCallback(d) {
+  console.log(d)
+}
 class Tree {
   constructor(opt) {
     this.el = opt.el;
@@ -16,6 +18,7 @@ class Tree {
     this.x1 = -this.x0;
     this.scaleIcon = opt.scaleIcon;
     this.legend = opt.legend;
+    this.scale = 1;
     this.eventCallback = eventCallback;
     this.render();
   }
@@ -57,11 +60,10 @@ class Tree {
         "transform",
         `translate(${this.root.dy / 3},${this.root.dx - this.x0})`
       );
-    this.svg.call(this.zoom);
+    this.svg.call(this.zoom).on("dblclick.zoom", null);
   }
 
   addLegend() {
-    console.log(this.legend)
     d3.select(this.el)
       .append("div")
       .attr("class", "legend")
@@ -69,9 +71,12 @@ class Tree {
       .data(this.legend)
       .enter()
       .append("p")
-      .html((d) => {
-        return `<img style='margin-right:10px' src=${d.path} /> <span>${d.name}</span>`
-      });
+      .html(
+        (d) =>
+          `<img style='margin-right:10px' src=${d.path} /> <span>${
+            d.name
+          }</span>`
+      );
   }
 
   addScaleBtn() {
@@ -85,9 +90,7 @@ class Tree {
       .append("img")
       .attr("class", "icon")
       .attr("src", (d, i) => this.scaleIcon[i].path)
-      .on("click", (d) => {
-        console.log(d);
-      });
+      .on("click", (d) => this.btnClick(d));
   }
 
   addLinks() {
@@ -132,7 +135,7 @@ class Tree {
       .attr("width", 40)
       .attr("height", 40)
       .style("cursor", "pointer")
-      .on("click", this.eventCallback)
+      .on("click", (d) => this.eventCallback(d))
       .on("mouseenter", (d) => this.mouseEnter(d))
       .on("mouseout", () => this.mouseOut);
 
@@ -157,13 +160,28 @@ class Tree {
     this.addLegend();
   }
 
-  eventCallback() {}
   mouseOut() {
     this.tooltip.style("opacity", 0);
   }
   mouseEnter(d) {
     this.tooltip.style("opacity", 1);
-    console.log(d.data);
+  }
+
+  btnClick(d) {
+    if (d.name === "reset") {
+      this.svg
+        .transition()
+        .duration(500)
+        .call(this.zoom.transform, d3.zoomIdentity);
+      return;
+    }
+    if (d.name === "amplification") {
+      this.zoom.scaleBy(this.svg.transition().duration(500), 1.2);
+    }
+
+    if (d.name === "shrink") {
+      this.zoom.scaleBy(this.svg.transition().duration(500), 0.8);
+    }
   }
 
   // resize() {
@@ -184,6 +202,19 @@ class Tree {
     );
   }
 
+  getTransform() {
+    let transform = this.group.attr("transform");
+    const translate = transform.match(/translate\((.*?)\)/);
+    const scale = transform.match(/scale\((.*?)\)/);
+    const t = translate && translate[1].split(",");
+    const s = scale && scale[1];
+    return {
+      x: t[0],
+      y: t[1],
+      s: s,
+    };
+  }
+
   addTooltip() {
     d3.select(".tooltip").remove();
     if (!this.tooltip) {
@@ -200,6 +231,7 @@ class Tree {
       .transition()
       .duration(500)
       .call(this.zoom.transform, d3.zoomIdentity);
+    this.scale = 1;
   }
 
   distoryed() {
