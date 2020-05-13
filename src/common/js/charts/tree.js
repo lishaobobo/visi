@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 function eventCallback(d) {
-  console.log(d)
+  console.log(d);
 }
 class Tree {
   constructor(opt) {
@@ -164,6 +164,11 @@ class Tree {
     this.tooltip.style("opacity", 0);
   }
   mouseEnter(d) {
+    let { data } = d;
+    delete data.children;
+    Object.keys(data).forEach((item) => {
+      this.tooltip.append("p").text(data[item]);
+    });
     this.tooltip.style("opacity", 1);
   }
 
@@ -200,19 +205,6 @@ class Tree {
         this.x0 +
         transform.y}) scale(${transform.k})`
     );
-  }
-
-  getTransform() {
-    let transform = this.group.attr("transform");
-    const translate = transform.match(/translate\((.*?)\)/);
-    const scale = transform.match(/scale\((.*?)\)/);
-    const t = translate && translate[1].split(",");
-    const s = scale && scale[1];
-    return {
-      x: t[0],
-      y: t[1],
-      s: s,
-    };
   }
 
   addTooltip() {
