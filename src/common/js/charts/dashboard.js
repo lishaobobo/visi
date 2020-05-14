@@ -2,8 +2,8 @@ import * as d3 from "d3";
 import * as util from "../map/util";
 
 function getSplitInfo(total, index, allAngle = 360, offset = 0) {
-  const leftOffset =  allAngle / 10;
-  const steep = allAngle / 5;
+  const steep = allAngle / total;
+  const leftOffset =  steep / 2;
   let angle = 90 - leftOffset - steep * index;
   angle -= offset;
   angle += 360;
