@@ -1,48 +1,5 @@
 import * as d3 from "d3";
 import * as util from "../map/util";
-<<<<<<< HEAD
-=======
-
-function getSplitInfo(total, index, allAngle = 360, offset = 0) {
-  const steep = allAngle / total;
-  const leftOffset =  steep / 2;
-  let angle = 90 - leftOffset - steep * index;
-  angle -= offset;
-  angle += 360;
-  angle %= 360;
-  let x1 = 0;
-  let x2 = 0;
-  let y1 = 0;
-  let y2 = 0;
-  if (angle <= 90) {
-    x2 = 1;
-    y2 = 1;
-  } else if (angle <= 180) {
-    const _angle = angle - 90;
-    x2 = 1;
-    y1 = 1;
-  } else if (angle <= 270) {
-    const _angle = angle - 180;
-    x1 = 1;
-    y1 = 1;
-  } else if (angle < 360) {
-    const _angle = angle - 270;
-    x1 = 1;
-    y2 = 1;
-  }
-  return {
-    angle,
-    x1,
-    x2,
-    y1,
-    y2
-  };
-}
-
-function textFormat(value) {
-  return (value * 100).toFixed(2) + "%";
-}
->>>>>>> 1834809b3548f9f83a55c023cc561a0a5e89e670
 /**
  *
  * @class
