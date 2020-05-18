@@ -60,6 +60,7 @@ export default {
         changeEndCallback: value => {
           console.log("Tick end.");
         },
+        showText: false,
         textFormat: value => `<tspan>${(value * 10).toFixed(1)}</tspan>`
       }
     };
@@ -70,6 +71,9 @@ export default {
         value: 0.5,
         allAngle: 270,
         offsetAngle: -135,
+        pointerColor: "rgb(255,159,12)",
+        textColor: "rgb(255,159,12)",
+        valueFormat: value => (value * 10).toFixed(1)
       }
     };
     this.$nextTick(() => {

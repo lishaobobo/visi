@@ -32,7 +32,9 @@ class Dashboard {
       changeEndCallback: null,
 
       showScale: true,
-      showPointer: true
+      showPointer: true,
+      pointerSize: 100,
+      pointerColor: "#ccc"
     }
   };
 
@@ -120,7 +122,19 @@ class Dashboard {
   }
 
   // 创建指针
-  createPointer() {}
+  createPointer() {
+    this.pointer = this.g
+      .append("path")
+      .attr(
+        "d",
+        "m-0.099921,-60c1.09018,0 1.99926,0.8338 2.09326,1.91992l4.94168,57.10024c0.33671,3.89068 -2.54435,7.31766 -6.43503,7.65437c-0.20244,0.01752 -0.40554,0.02631 -0.60874,0.02634c-3.90316,0.00051 -7.06772,-3.16321 -7.06824,-7.06637c-0.00003,-0.20433 0.00881,-0.40856 0.02648,-0.61213l4.95684,-57.10249c0.09428,-1.08617 1.0035,-1.91988 2.09375,-1.91988z"
+      );
+    this.text = this.g
+      .append("text")
+      .attr("class", "dashboard-text")
+      .attr("text-anchor", "middle")
+      .attr("dominant-baseline", "middle");
+  }
 
   // 创建刻度
   createScale(count) {
@@ -164,7 +178,9 @@ class Dashboard {
       const startAngle = baseAngle * index;
       const _text = (index * 1) / (count - 1);
       text
-        .text(_text)
+        .text(() => {
+          return options.valueFormat ? options.valueFormat(value) : value;
+        })
         .attr(
           "x",
           Math.sin(startAngle + (options.offsetAngle * Math.PI) / 180) *
@@ -176,6 +192,22 @@ class Dashboard {
             borderCenter
         );
     });
+
+    this.pointer
+      .attr(
+        "transform",
+        `scale(${this.options.pointerSize / 59.08}) rotate(${value * 270 -
+          270 / 2})`
+      )
+      .attr("fill", this.options.pointerColor);
+
+    this.text
+      .text(() => {
+        return options.valueFormat ? options.valueFormat(value) : value;
+      })
+      .attr("y", this.options.radius / 3)
+      .attr("font-size", 36)
+      .attr("fill", this.options.textColor);
   }
 
   update(newValue) {
@@ -251,7 +283,7 @@ class Dashboard {
     this.svg.attr("width", "100%").attr("height", "100%");
     options.radius = minRadius / 2 - 20;
     options.cx = minRadius / 2 - 20;
-    options.cy = minRadius / 2 - 20 ;
+    options.cy = minRadius / 2 - 20;
 
     // 加载arc
     this.arc = d3
