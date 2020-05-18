@@ -134,6 +134,10 @@ class Dashboard {
       .attr("class", "dashboard-text")
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle");
+    this.pointerCircle = this.g
+      .append("circle")
+      .attr("r", "5")
+      .attr("fill", "#fff");
   }
 
   // 创建刻度
