@@ -61,6 +61,11 @@ const routes = [
     path: '/timeline',
     name: 'timeline',
     component: resolve => require(['./components/charts/timeline.vue'], resolve)
+  },
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    component: resolve => require(['./components/charts/dashboard.vue'], resolve)
   }
 ];
 

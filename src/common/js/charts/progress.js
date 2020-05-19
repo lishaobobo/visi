@@ -1,16 +1,39 @@
 import * as d3 from "d3";
 import * as util from "../map/util";
 
-function getSplitInfo(total, index) {
-  const innerAngleTotal = 180 * (total - 2);
-  const oneAngleTotal = innerAngleTotal / total;
-  const angle =
-    oneAngleTotal - (oneAngleTotal / 2 + (180 - oneAngleTotal) * index);
-
+function getSplitInfo(total, index, allAngle = 360, offset = 0) {
+  const leftOffset = allAngle / 10;
+  const steep = allAngle / 5;
+  let angle = 90 - leftOffset - steep * index;
+  angle -= offset;
+  angle += 360;
+  angle %= 360;
+  let x1 = 0;
+  let x2 = 0;
+  let y1 = 0;
+  let y2 = 0;
+  if (angle <= 90) {
+    x2 = 1;
+    y2 = 1;
+  } else if (angle <= 180) {
+    const _angle = angle - 90;
+    x2 = 1;
+    y1 = 1;
+  } else if (angle <= 270) {
+    const _angle = angle - 180;
+    x1 = 1;
+    y1 = 1;
+  } else if (angle < 360) {
+    const _angle = angle - 270;
+    x1 = 1;
+    y2 = 1;
+  }
   return {
     angle,
-    x: Math.sin((angle * Math.PI) / 180),
-    y: Math.cos((angle * Math.PI) / 180),
+    x1,
+    x2,
+    y1,
+    y2
   };
 }
 
@@ -23,7 +46,7 @@ function textFormat(value) {
  * @example
  * 默认配置
  *  options = {
- *    name: "progress", //实例名
+ *    name: "Dashboard", //实例名
  *    el: document.body, //容器
  *    options: {
  *      value: 0, // 进度 0 - 1
@@ -63,9 +86,9 @@ function textFormat(value) {
  *   };
  *
  */
-class Progress {
+class Dashboard {
   _options = {
-    name: "progress",
+    name: "dashboard",
     el: document.body,
     options: {
       // 进度 0 - 1
@@ -108,7 +131,7 @@ class Progress {
       textFormat: textFormat,
       textStyle: {
         color: "#ffffff",
-        fontSize: "16px",
+        fontSize: "16px"
       },
       // 动画结束
       changeEndCallback: null,
@@ -124,7 +147,9 @@ class Progress {
       showInnerCircle: true,
       innerCircleFill: "rgba(0,0,0,1)",
       innerCircleScale: 0.9,
-    },
+      allAngle: 360,
+      offsetAngle: 0
+    }
   };
 
   color = null;
@@ -220,21 +245,29 @@ class Progress {
       this.createDot();
     }
     // 动画前往对应值
-    this.animation((t) => {
+    this.animation(t => {
       this.render(t * options.value);
     });
   }
 
   initLinear(count) {
     this.linearList.length = count;
-    this.linearList = Array.from(this.linearList).map((_, index) => {
-      const linearGradientInfo = getSplitInfo(count, index);
+    const splitList = Array.from(this.linearList).map((_, index) =>
+      getSplitInfo(
+        count,
+        index,
+        this.options.allAngle,
+        this.options.offsetAngle
+      )
+    );
+    this.linearList = splitList.map((linearGradientInfo, index) => {
+      const nextIndex = index === splitList.length - 1 ? 0 : index + 1;
       const linearGradient = this.defs
         .append("linearGradient")
-        .attr("x1", linearGradientInfo.x >= 0 ? 0 : -linearGradientInfo.x)
-        .attr("x2", linearGradientInfo.x >= 0 ? linearGradientInfo.x : 0)
-        .attr("y1", linearGradientInfo.y >= 0 ? 0 : -linearGradientInfo.y)
-        .attr("y2", linearGradientInfo.y >= 0 ? linearGradientInfo.y : 0)
+        .attr("x1", linearGradientInfo.x1)
+        .attr("y1", linearGradientInfo.y1)
+        .attr("x2", linearGradientInfo.x2)
+        .attr("y2", linearGradientInfo.y2)
         .attr("class", this.uuid)
         .attr("id", this.uuid + "_" + (index + 1));
 
@@ -273,17 +306,52 @@ class Progress {
 
   // 创建轨道背景
   createBackground() {
+    const options = this.options;
+    const baseAngle = (Math.PI / 180) * options.allAngle;
+    const offset = (Math.PI / 180) * options.offsetAngle;
+    const borderCenter = options.radius + options.borderWidth / 2;
     this.background = this.g
-      .append("circle")
+      .append("path")
       .attr("class", "track-background")
-      .attr("fill", "none");
+      .attr("fill", "none")
+      .attr(
+        "d",
+        this.arc({
+          startAngle: offset,
+          endAngle: offset + baseAngle
+        })
+      );
+    this.background_circle_1 = this.g
+      .append("circle")
+      .attr("class", "background_circle_1")
+      .attr(
+        "cx",
+        Math.sin((options.offsetAngle * Math.PI) / 180) * borderCenter
+      )
+      .attr(
+        "cy",
+        -Math.cos((options.offsetAngle * Math.PI) / 180) * borderCenter
+      );
+    this.background_circle_2 = this.g
+      .append("circle")
+      .attr("class", "background_circle_2")
+      .attr(
+        "cx",
+        Math.sin(((options.offsetAngle + options.allAngle) * Math.PI) / 180) *
+          borderCenter
+      )
+      .attr(
+        "cy",
+        -Math.cos(((options.offsetAngle + options.allAngle) * Math.PI) / 180) *
+          borderCenter
+      );
   }
 
   // 创建文字
   createText() {
     this.textDom = this.g
       .append("text")
-      .attr("class", "progress-title")
+      .attr("class", "dashboard-title")
       .attr("text-anchor", "middle")
       .attr("dominant-baseline", "middle");
   }
@@ -311,7 +379,8 @@ class Progress {
   render(value) {
     const options = this.options;
     const count = options.splitConut;
-    const baseAngle = (Math.PI / 180) * (360 / count);
+    const baseAngle = (Math.PI / 180) * (options.allAngle / count);
+    const offset = (Math.PI / 180) * options.offsetAngle;
     // 防止 1 % 0.1 === 0.999999999999999;
     const currentSplitValue = value === 1 ? 0 : value % (1 / count);
     const currentSplit = Math.floor(value / (1 / count));
@@ -323,8 +392,8 @@ class Progress {
         path.attr(
           "d",
           this.arc({
-            startAngle: baseAngle * index,
-            endAngle: baseAngle * (index + currentSplitValue * count),
+            startAngle: baseAngle * index + offset,
+            endAngle: baseAngle * (index + currentSplitValue * count) + offset
           })
         );
         const linear = this.linearList[index];
@@ -338,21 +407,25 @@ class Progress {
         path.attr(
           "d",
           this.arc({
-            startAngle: baseAngle * index,
-            endAngle: baseAngle * (index + 1),
+            startAngle: baseAngle * index + offset,
+            endAngle: baseAngle * (index + 1) + offset
           })
         );
       }
     });
-    // 控制轨道
-    this.background
-      .attr("stroke", options.trackColor)
-      .attr("stroke-width", options.borderWidth)
-      .attr("r", options.radius + options.borderWidth / 2)
-      .attr("cx", 0)
-      .attr("cy", 0);
+    if (options.showTrack) {
+      // 控制轨道
+      this.background.attr("fill", options.trackColor);
+      this.background_circle_1
+        .attr("fill", options.trackColor)
+        .attr("r", options.borderWidth / 2 - 1);
+      this.background_circle_2
+        .attr("fill", options.trackColor)
+        .attr("r", options.borderWidth / 2 - 1);
+    }
 
-    const endAngle = (360 / count) * (currentSplit + currentSplitValue * count);
+    const endAngle =
+      (options.allAngle / count) * (currentSplit + currentSplitValue * count);
     const borderCenter = options.radius + options.borderWidth / 2;
 
     // 控制圆角
@@ -360,12 +433,27 @@ class Progress {
       this.circle_1
         .attr("fill", this.color(0))
         .attr("r", options.borderWidth / 2)
-        .attr("cy", -options.radius - options.borderWidth / 2);
+        .attr(
+          "cx",
+          Math.sin((options.offsetAngle * Math.PI) / 180) * borderCenter
+        )
+        .attr(
+          "cy",
+          -Math.cos((options.offsetAngle * Math.PI) / 180) * borderCenter
+        );
       this.circle_2
         .attr("r", options.borderWidth / 2)
         .attr("fill", this.color(value))
-        .attr("cx", Math.sin((endAngle * Math.PI) / 180) * borderCenter)
-        .attr("cy", -Math.cos((endAngle * Math.PI) / 180) * borderCenter);
+        .attr(
+          "cx",
+          Math.sin(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        )
+        .attr(
+          "cy",
+          -Math.cos(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        );
 
       if (options.fullIsHideCircle && value === 1) {
         this.circle_1.attr("r", 0);
@@ -381,8 +469,16 @@ class Progress {
         .attr("stroke-width", options.dotThickness)
         .attr("fill", options.dotFill)
         .attr("stroke", options.dotStrokeColor)
-        .attr("cx", Math.sin((endAngle * Math.PI) / 180) * borderCenter)
-        .attr("cy", -Math.cos((endAngle * Math.PI) / 180) * borderCenter);
+        .attr(
+          "cx",
+          Math.sin(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        )
+        .attr(
+          "cy",
+          -Math.cos(((endAngle + options.offsetAngle) * Math.PI) / 180) *
+            borderCenter
+        );
     }
 
     // 控制中心文字
@@ -414,7 +510,7 @@ class Progress {
     this.options.value = Number(newValue);
 
     // 动画前往新值
-    this.animation((t) => {
+    this.animation(t => {
       this.render(oldValue + diff * t);
     });
   }
@@ -473,7 +569,6 @@ class Progress {
     const minRadius = Math.min(offsetWidth, offsetHeight);
     this.svg.attr("width", "100%").attr("height", "100%");
     options.radius = minRadius / 2 - options.borderWidth - options.padding;
-    console.log(options.borderWidth)
     options.cx = minRadius / 2;
     options.cy = minRadius / 2;
 
@@ -492,4 +587,4 @@ class Progress {
   }
 }
 
-export { Progress as default };
+export { Dashboard as default };
