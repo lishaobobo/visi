@@ -1,18 +1,13 @@
 <template>
-  <div class="dashboard">
-    <div class="dashboard--progress" ref="progress"></div>
-    <div class="dashboard--main" ref="dashboard"></div>
-  </div>
+  <div class="dashboard" ref="dashboard"></div>
 </template>
 <script>
-import Progress from "js/charts/progress";
 import Dashboard from "js/charts/dashboard";
 
 export default {
   data() {
     return {
-      value: 100,
-      fontSize: 40
+      value: 0.5
     };
   },
   watch: {
@@ -25,45 +20,10 @@ export default {
         this.value = 0;
         return;
       }
-      this.progress.update(this.value / 100);
-    },
-    fontSize(newValue) {
-      this.progress.setOptions({
-        titleStyle: { fontSize: newValue }
-      });
+      this.dashboard.update(this.value / 100);
     }
   },
   mounted() {
-    let option = {
-      name: "progress",
-      el: this.$refs.progress,
-      options: {
-        value: 0.5,
-
-        startColor: "rgb(255,197,128)",
-        endColor: "rgb(255,159,12)",
-        trackColor: "rgb(249,242,234)",
-        fullIsHideCircle: false,
-
-        reverse: false,
-        borderWidth: 20,
-        textStyle: {
-          fontSize: this.fontSize + "px",
-          color: "#FFF"
-        },
-        splitConut: 5,
-        showDot: false,
-        allAngle: 270,
-        offsetAngle: -135,
-        innerCircleScale: 1.2,
-        innerCircleFill: "rgba(248,251,255,1)",
-        changeEndCallback: value => {
-          console.log("Tick end.");
-        },
-        showText: false,
-        textFormat: value => `<tspan>${(value * 10).toFixed(1)}</tspan>`
-      }
-    };
     let dashboardOption = {
       name: "dashboard",
       el: this.$refs.dashboard,
@@ -73,17 +33,43 @@ export default {
         offsetAngle: -135,
         pointerColor: "rgb(255,159,12)",
         textColor: "rgb(255,159,12)",
-        valueFormat: value => (value * 10).toFixed(1)
+        valueFormat: value => (value * 10).toFixed(1),
+        progress: {
+          startColor: "rgb(255,197,128)",
+          endColor: "rgb(255,159,12)",
+          trackColor: "rgb(249,242,234)",
+          fullIsHideCircle: false,
+
+          reverse: false,
+          borderWidth: 20,
+          textStyle: {
+            fontSize: this.fontSize + "px",
+            color: "#FFF"
+          },
+          splitConut: 5,
+          showDot: false,
+          allAngle: 270,
+          offsetAngle: -135,
+          innerCircleScale: 1.2,
+          innerCircleFill: "rgba(248,251,255,1)",
+          changeEndCallback: value => {
+            console.log("Tick end.");
+          },
+          showText: false,
+          textFormat: value => `<tspan>${(value * 10).toFixed(1)}</tspan>`
+        }
       }
     };
     this.$nextTick(() => {
-      option.el = this.$refs.progress;
-      this.progress = new Progress(option);
       this.dashboard = new Dashboard(dashboardOption);
       window.addEventListener("resize", () => {
-        this.progress.resize();
+        this.dashboard.resize();
       });
     });
+
+    setTimeout(() => {
+      this.dashboard.update(1)
+    }, 3000)
   }
 };
 </script>
