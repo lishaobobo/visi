@@ -1,5 +1,7 @@
 import * as d3 from "d3";
 import * as util from "../map/util";
+import Progress from "./progress";
+
 /**
  *
  * @class
@@ -34,8 +36,8 @@ class Dashboard {
       showScale: true,
       showPointer: true,
       pointerSize: 100,
-      pointerColor: "#ccc"
-    }
+      pointerColor: "#ccc",
+    },
   };
 
   color = null;
@@ -72,7 +74,10 @@ class Dashboard {
     }
 
     // 加载svg
-    this.svg = this.container.append("svg");
+    this.progressSvg = this.container
+      .append("svg")
+      .attr("class", "dashboard--progress");
+    this.svg = this.container.append("svg").attr("class", "dashboard--main");
 
     // 加载uuid
     this.uuid = util.uuid();
@@ -81,6 +86,14 @@ class Dashboard {
     this.color = d3.scaleSequential(
       d3.interpolate(this.options.startColor, this.options.endColor)
     );
+
+    this.progress = new Progress({
+      el: this.progressSvg,
+      options: {
+        value: this.options.value,
+        ...this.options.progress,
+      },
+    });
 
     // 初始化内容
     this.init();
@@ -116,7 +129,7 @@ class Dashboard {
     }
 
     // 动画前往对应值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(t * options.value);
     });
   }
@@ -173,7 +186,7 @@ class Dashboard {
         "d",
         this.arc({
           startAngle,
-          endAngle: startAngle + baseAngle - space
+          endAngle: startAngle + baseAngle - space,
         })
       );
     });
@@ -183,7 +196,7 @@ class Dashboard {
       const _text = (index * 1) / (count - 1);
       text
         .text(() => {
-          return options.valueFormat ? options.valueFormat(value) : value;
+          return options.valueFormat ? options.valueFormat(_text) : _text;
         })
         .attr(
           "x",
@@ -227,14 +240,19 @@ class Dashboard {
     this.options.value = Number(newValue);
 
     // 动画前往新值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(oldValue + diff * t);
     });
+    this.progress.update(newValue);
   }
 
   setOptions(newOptions = {}) {
     util.extend(true, this.options, newOptions);
     this.render(this.options.value);
+    this.progress.setOptions({
+      value: this.options.value,
+      ...this.options.progress,
+    });
   }
 
   animation(tickCallback) {
@@ -301,6 +319,8 @@ class Dashboard {
       "transform",
       "translate(" + minRadius / 2 + "," + minRadius / 2 + ")"
     );
+
+    this.progressSvg.attr("viewBox", `0 0 ${minRadius} ${minRadius}`);
   }
 }
 
