@@ -1,5 +1,7 @@
 import * as d3 from "d3";
 import * as util from "../map/util";
+import Progress from "./progress";
+
 /**
  *
  * @class
@@ -34,8 +36,8 @@ class Dashboard {
       showScale: true,
       showPointer: true,
       pointerSize: 100,
-      pointerColor: "#ccc"
-    }
+      pointerColor: "#ccc",
+    },
   };
 
   color = null;
@@ -72,7 +74,10 @@ class Dashboard {
     }
 
     // 加载svg
-    this.svg = this.container.append("svg");
+    this.progressSvg = this.container
+      .append("svg")
+      .attr("class", "dashboard--progress");
+    this.svg = this.container.append("svg").attr("class", "dashboard--main");
 
     // 加载uuid
     this.uuid = util.uuid();
@@ -81,6 +86,14 @@ class Dashboard {
     this.color = d3.scaleSequential(
       d3.interpolate(this.options.startColor, this.options.endColor)
     );
+
+    this.progress = new Progress({
+      el: this.progressSvg,
+      options: {
+        value: this.options.value,
+        ...this.options.progress,
+      },
+    });
 
     // 初始化内容
     this.init();
@@ -116,7 +129,7 @@ class Dashboard {
     }
 
     // 动画前往对应值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(t * options.value);
     });
   }
@@ -160,6 +173,7 @@ class Dashboard {
   }
 
   render(value) {
+    const _me = this;
     const options = this.options;
     const count = options.splitConut;
     const baseAngle = (Math.PI / 180) * (options.allAngle / (count - 1));
@@ -173,7 +187,7 @@ class Dashboard {
         "d",
         this.arc({
           startAngle,
-          endAngle: startAngle + baseAngle - space
+          endAngle: startAngle + baseAngle - space,
         })
       );
     });
@@ -183,7 +197,7 @@ class Dashboard {
       const _text = (index * 1) / (count - 1);
       text
         .text(() => {
-          return options.valueFormat ? options.valueFormat(value) : value;
+          return options.valueFormat ? options.valueFormat(_text) : _text;
         })
         .attr(
           "x",
@@ -212,6 +226,33 @@ class Dashboard {
       .attr("y", this.options.radius / 3)
       .attr("font-size", 36)
       .attr("fill", this.options.textColor);
+
+    if (value > 0 && value <= 0.5) {
+      setArcOption("#5FD38F", value);
+      this.pointer.attr("fill", "#5FD38F");
+      this.text.attr('fill',"#5FD38F")
+    }
+
+    if (value >= 0.5 && value <= 0.75) {
+      setArcOption("#FFB334", value);
+      this.pointer.attr("fill", "#FFB334");
+      this.text.attr('fill',"#FFB334")
+    }
+
+    if (value > 0.75) {
+      setArcOption("#F64B29", value);
+      this.pointer.attr("fill", "#F64B29");
+      this.text.attr('fill',"#F64B29")
+    }
+
+    function setArcOption(color, value) {
+      _me.progress.options.startColor = color;
+      _me.progress.options.endColor = color;
+      const newColor = d3.rgb(color);
+      newColor.opacity = 0.3;
+      _me.progress.options.trackColor = newColor;
+      _me.progress.update(value);
+    }
   }
 
   update(newValue) {
@@ -227,7 +268,7 @@ class Dashboard {
     this.options.value = Number(newValue);
 
     // 动画前往新值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(oldValue + diff * t);
     });
   }
@@ -235,6 +276,10 @@ class Dashboard {
   setOptions(newOptions = {}) {
     util.extend(true, this.options, newOptions);
     this.render(this.options.value);
+    this.progress.setOptions({
+      value: this.options.value,
+      ...this.options.progress,
+    });
   }
 
   animation(tickCallback) {
@@ -301,6 +346,8 @@ class Dashboard {
       "transform",
       "translate(" + minRadius / 2 + "," + minRadius / 2 + ")"
     );
+
+    this.progressSvg.attr("viewBox", `0 0 ${minRadius} ${minRadius}`);
   }
 }
 

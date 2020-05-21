@@ -244,6 +244,7 @@ class Dashboard {
     if (options.showDot) {
       this.createDot();
     }
+    if(this.transition)return
     // 动画前往对应值
     this.animation(t => {
       this.render(t * options.value);
@@ -377,6 +378,11 @@ class Dashboard {
   }
 
   render(value) {
+     // 检测颜色
+    this.color = d3.scaleSequential(
+      d3.interpolate(this.options.startColor, this.options.endColor)
+    );
+    this.init();
     const options = this.options;
     const count = options.splitConut;
     const baseAngle = (Math.PI / 180) * (options.allAngle / count);
