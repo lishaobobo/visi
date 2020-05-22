@@ -60,7 +60,7 @@ export default {
         {
           name: "dashboard",
           router: "dashboard",
-          img: require("../assets/images/timeline.png")
+          img: require("../assets/images/dashboard.png")
         }
       ]
     };
