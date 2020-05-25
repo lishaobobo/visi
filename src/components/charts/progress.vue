@@ -73,6 +73,9 @@ export default {
       })
 
     })
+  },
+  beforeDestroy() {
+    this.progress.destroy();
   }
 };
 </script>

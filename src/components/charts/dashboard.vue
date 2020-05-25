@@ -67,9 +67,12 @@ export default {
       });
     });
 
-    setTimeout(() => {
-      this.dashboard.update(1)
-    }, 3000)
+    // setTimeout(() => {
+    //   this.dashboard.update(1)
+    // }, 3000)
+  },
+   beforeDestroy(){
+     this.dashboard.destroy();
   }
 };
 </script>
