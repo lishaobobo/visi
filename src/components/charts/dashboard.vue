@@ -71,8 +71,11 @@ export default {
     //   this.dashboard.update(1)
     // }, 3000)
   },
-   beforeDestroy(){
-     this.dashboard.destroy();
+  beforeDestroy() {
+    this.dashboard.destroy();
+    window.removeEventListener("resize", () => {
+      this.dashboard.resize();
+    });
   }
 };
 </script>

@@ -76,6 +76,9 @@ export default {
   },
   beforeDestroy() {
     this.progress.destroy();
+    window.removeEventListener("resize", () => {
+      this.progress.resize();
+    });
   }
 };
 </script>
