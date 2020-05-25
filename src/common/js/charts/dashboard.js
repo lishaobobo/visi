@@ -307,7 +307,6 @@ class Dashboard {
     this.g = null;
     this.defs.remove();
     this.defs = null;
-    this.arc.remove();
     this.arc = null;
     this.color = null;
     this.svg = null;
