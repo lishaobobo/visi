@@ -33,7 +33,7 @@ function getSplitInfo(total, index, allAngle = 360, offset = 0) {
     x1,
     x2,
     y1,
-    y2
+    y2,
   };
 }
 
@@ -101,9 +101,9 @@ class Dashboard {
       circle: true,
 
       //开始颜色
-      startColor: "#000",
+      startColor: "#3EAE89",
       //结束颜色
-      endColor: "#fff",
+      endColor: "#E69F34",
 
       // 圆半径
       radius: 50,
@@ -131,7 +131,7 @@ class Dashboard {
       textFormat: textFormat,
       textStyle: {
         color: "#ffffff",
-        fontSize: "16px"
+        fontSize: "16px",
       },
       // 动画结束
       changeEndCallback: null,
@@ -145,11 +145,11 @@ class Dashboard {
       dotStrokeColor: "#000",
       // 是否含有内圆
       showInnerCircle: true,
-      innerCircleFill: "rgba(0,0,0,1)",
-      innerCircleScale: 0.9,
+      innerCircleFill: "rgba(255,255,255,1)",
+      innerCircleScale: 0.7,
       allAngle: 360,
-      offsetAngle: 0
-    }
+      offsetAngle: 0,
+    },
   };
 
   color = null;
@@ -216,6 +216,8 @@ class Dashboard {
     // 设置容器与内容大小，与父级容器兼容
     this.updateSize();
 
+    this.createArc();
+
     // 创建内圆
     if (options.showInnerCircle) {
       this.createInnerCircle();
@@ -244,9 +246,9 @@ class Dashboard {
     if (options.showDot) {
       this.createDot();
     }
-    if(this.transition)return
+    if (this.transition) return;
     // 动画前往对应值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(t * options.value);
     });
   }
@@ -319,7 +321,7 @@ class Dashboard {
         "d",
         this.arc({
           startAngle: offset,
-          endAngle: offset + baseAngle
+          endAngle: offset + baseAngle,
         })
       );
     this.background_circle_1 = this.g
@@ -368,6 +370,27 @@ class Dashboard {
       .attr("class", "dot");
   }
 
+  createArc() {
+    const angle = Math.PI / 180;
+    // 加载arc
+    const arc = d3
+      .arc()
+      .innerRadius(1)
+      .outerRadius(this.options.radius)
+      .startAngle(-angle * 120)
+      .endAngle(angle * 120);
+    this.innerArc = this.g
+      .append("path")
+      .attr("d", arc)
+      .attr('class','status-lineasd')
+      .attr("fill", "#f4f6f9");
+    arc.startAngle(angle * 120).endAngle(angle * 240);
+    this.g
+      .append("path")
+      .attr("d", arc)
+      .attr("class", "space-topasd")
+      .attr("fill", "#fdfdfd");
+  }
   createInnerCircle() {
     this.innerCircle = this.g
       .append("circle")
@@ -375,10 +398,19 @@ class Dashboard {
       .attr("cx", 0)
       .attr("cy", 0)
       .attr("fill", this.options.innerCircleFill);
+
+    this.g
+      .append("circle")
+      .attr("r", this.options.radius * this.options.innerCircleScale - 10)
+      .attr("cx", 0)
+      .attr("cy", 0)
+      .attr("stroke", "#FBFBFB")
+      .attr("fill", "none")
+      .attr("stroke-width", 3);
   }
 
   render(value) {
-     // 检测颜色
+    // 检测颜色
     this.color = d3.scaleSequential(
       d3.interpolate(this.options.startColor, this.options.endColor)
     );
@@ -399,7 +431,7 @@ class Dashboard {
           "d",
           this.arc({
             startAngle: baseAngle * index + offset,
-            endAngle: baseAngle * (index + currentSplitValue * count) + offset
+            endAngle: baseAngle * (index + currentSplitValue * count) + offset,
           })
         );
         const linear = this.linearList[index];
@@ -414,7 +446,7 @@ class Dashboard {
           "d",
           this.arc({
             startAngle: baseAngle * index + offset,
-            endAngle: baseAngle * (index + 1) + offset
+            endAngle: baseAngle * (index + 1) + offset,
           })
         );
       }
@@ -516,7 +548,7 @@ class Dashboard {
     this.options.value = Number(newValue);
 
     // 动画前往新值
-    this.animation(t => {
+    this.animation((t) => {
       this.render(oldValue + diff * t);
     });
   }
@@ -572,8 +604,9 @@ class Dashboard {
     const offsetWidth = parseInt(this.container.style("width"));
     const offsetHeight = parseInt(this.container.style("height"));
     const minRadius = Math.min(offsetWidth, offsetHeight);
+    const fontSize = 16
     this.svg.attr("width", "100%").attr("height", "100%");
-    options.radius = minRadius / 2 - options.borderWidth - options.padding;
+    options.radius = minRadius / 2 - options.borderWidth - options.padding - fontSize;
     options.cx = minRadius / 2;
     options.cy = minRadius / 2;
 
@@ -584,7 +617,7 @@ class Dashboard {
       .outerRadius(this.options.radius + this.options.borderWidth - 1)
       .padAngle(-Math.PI / 180);
 
-    this.svg.attr("viewBox", `0 0 ${minRadius} ${minRadius}`);
+    // this.svg.attr("viewBox", `0 0 ${minRadius} ${minRadius}`);
     this.g.attr(
       "transform",
       "translate(" + minRadius / 2 + "," + minRadius / 2 + ")"

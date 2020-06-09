@@ -78,7 +78,6 @@ export default {
     //   this.root = this.tree(data);
     //   this.draw(this.root)
     // })
-    data.children.length = 3
     const tree = new Tree({
       el: this.$refs.svg,
       data,

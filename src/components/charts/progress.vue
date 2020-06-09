@@ -1,14 +1,14 @@
 <template>
   <div class="progress">
     <div class="content">
-      <div class="tools">
+      <!-- <div class="tools">
         <input type="number" v-model="value" max="100" min="0" step="1" />
         <button @click="value -= 30">- 30</button>
         <button @click="value += 30">+ 30</button>
         <button @click="fontSize -= 10">font size -10</button>
         <button @click="fontSize += 10">font size +10</button>
         <button @click="progress.resize()">resize</button>
-      </div>
+      </div> -->
       <div v-for="item in list" :key="item" ref="progress" class="chart-box"></div>
     </div>
   </div>
@@ -54,8 +54,10 @@ export default {
           fontSize: this.fontSize + "px",
           color: "#FFF"
         },
-        startColor: '#f00',
-        endColor: '#ff0',
+        allAngle: 210,
+        offsetAngle: -105,
+        startColor: '#3EAE89',
+        endColor: '#3EAE89',
         trackColor: "#cccccc",
         changeEndCallback: value => {
           console.log('Tick end.');
@@ -71,7 +73,6 @@ export default {
           this.progress.resize();
         });
       })
-
     })
   },
   beforeDestroy() {
@@ -85,5 +86,9 @@ export default {
 <style >
 body {
   overflow: scroll;
+}
+.chart-box{
+  width:400px;
+  height:400px;
 }
 </style>
