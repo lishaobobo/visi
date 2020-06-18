@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="191px" height="191px" viewBox="0 0 191 191" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 59 (86127) - https://sketch.com -->
+    <title>编组 12</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-1">
+            <stop stop-color="#FDFDFD" offset="0%"></stop>
+            <stop stop-color="#F2F5F8" offset="100%"></stop>
+        </linearGradient>
+        <ellipse id="path-2" cx="95.5" cy="96" rx="71.5" ry="71"></ellipse>
+        <filter x="-6.3%" y="-6.3%" width="112.6%" height="112.7%" filterUnits="objectBoundingBox" id="filter-3">
+            <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="3" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0.828638899   0 0 0 0 0.840538134   0 0 0 0 0.896342844  0 0 0 0.5 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+    </defs>
+    <g id="页面-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="报告-分析概览备份" transform="translate(-1031.000000, -142.000000)">
+            <g id="编组-88" transform="translate(860.000000, 31.000000)">
+                <g id="编组-12" transform="translate(171.000000, 111.000000)">
+                    <circle id="椭圆形备份-6" fill="#FDFDFD" cx="95.5" cy="95.5" r="95.5"></circle>
+                    <path d="M95.5,-4.26325641e-14 C148.243194,-4.26325641e-14 191,42.7568064 191,95.5 C191,112.634966 186.487275,128.715928 178.585478,142.619233 L95.5,95 L12.4150902,142.620233 C4.51294154,128.716699 0,112.635376 0,95.5 C0,42.7568064 42.7568064,-4.26325641e-14 95.5,-4.26325641e-14 Z" id="形状结合" fill="url(#linearGradient-1)"></path>
+                    <g id="椭圆形">
+                        <use fill="black" fill-opacity="1" filter="url(#filter-3)" xlink:href="#path-2"></use>
+                        <use fill="#FFFFFF" fill-rule="evenodd" xlink:href="#path-2"></use>
+                    </g>
+                    <ellipse id="椭圆形" stroke="#FBFBFB" cx="95.5" cy="96" rx="64.5" ry="64"></ellipse>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

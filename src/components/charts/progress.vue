@@ -14,7 +14,7 @@
   </div>
 </template>
 <script>
-import Progress from "js/charts/progress";
+import Progress from "js/charts/progress copy";
 
 export default {
   data() {
@@ -43,13 +43,24 @@ export default {
     }
   },
   mounted() {
+    const value = 0.71
+    let str = ''
+    if (value > 0 && value < 0.49) {
+      str = '未发现威胁'
+    }
+    if (value >= 0.5 && value < 0.74) {
+      str = '可疑'
+    }
+    if (value >= 0.74) {
+      str = '恶意'
+    }
     let option = {
       name: "progress",
       el: this.$refs.progress,
       options: {
-        value: 0.6,
+        value,
         reverse: false,
-        borderWidth: 10,
+        borderWidth: 12,
         textStyle: {
           fontSize: this.fontSize + "px",
           color: "#FFF"
@@ -62,7 +73,7 @@ export default {
         changeEndCallback: value => {
           console.log('Tick end.');
         },
-        textFormat: value => (`<tspan>${(value * 100).toFixed(2)}</tspan><tspan style='font-size:12px'>%</tspan>`)
+        textFormat: value => (`<tspan style='font-size:40px'>${(value * 10).toFixed(1)}</tspan><tspan x="0" y="40" style='font-size:14px'>${str}</tspan>`)
       }
     };
     this.$nextTick(() => {
